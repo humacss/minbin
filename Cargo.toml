@@ -1,0 +1,19 @@
+[package]
+name = "simbin"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "A simple, zero-dependency, no-std, big-endian binary serializer"
+repository = "https://github.com/humacss/simbin"
+documentation = "https://docs.rs/simbin"
+readme = "README.md"
+keywords = ["no-std", "serialization", "big-endian", "embedded", "network"]
+categories = ["encoding", "no-std", "network-programming"]
+authors = ["humacss"]
+
+[dev-dependencies]
+criterion = { version = "0.8", features = ["html_reports"] }
+
+[[bench]]
+name = "main"
+harness = false
