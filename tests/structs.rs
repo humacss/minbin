@@ -1,44 +1,46 @@
-use simbin::{ToFromBytes, ToFromByteError, to_bytes, from_bytes, assert_roundtrip};
+pub mod helpers;
+
+use simbin::{ToFromBytes, ToFromByteError, BytesWriter, BytesReader};
 
 #[derive(Debug, PartialEq)]
-struct TestStruct {
+struct TestStruct<'a> {
     id: u32,
-    name: String,
-    values: Vec<i16>,
+    name: &'a str,
 }
 
-impl ToFromBytes for TestStruct {
-    fn to_bytes(&self) -> Result<Vec<u8>, ToFromByteError> {
-        let mut bytes = Vec::new();
-        
-        bytes.extend(to_bytes(&self.id)?);
-        bytes.extend(to_bytes(&self.name)?);
-        bytes.extend(to_bytes(&self.values)?);
+impl<'de> ToFromBytes<'de> for TestStruct<'de> {
+    #[inline(always)]
+    fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
+        self.id.to_bytes(writer)?;
+        self.name.to_bytes(writer)?;
 
-        Ok(bytes)
+        Ok(())
     }
 
-    fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), ToFromByteError> {
-        let (id, bytes) = from_bytes(bytes)?;
-        let (name, bytes) = from_bytes(bytes)?;
-        let (values, bytes) = from_bytes(bytes)?;
+    #[inline(always)]
+    fn from_bytes(reader: &mut BytesReader<'de>) -> Result<(Self, &'de [u8]), ToFromByteError> {
+        let (id, _) = u32::from_bytes(reader)?;
+        let (name, remainder) = <&str>::from_bytes(reader)?;
 
-        Ok((TestStruct { id, name, values }, bytes))
+        Ok((TestStruct { id, name }, remainder))
+    }
+
+    #[inline(always)]
+    fn byte_count(&self) -> usize {
+        self.id.byte_count() + self.name.byte_count()
     }
 }
 
 #[test]
 fn test_struct() {
-    assert_roundtrip!(TestStruct, vec![
+    assert_roundtrip!(TestStruct, &[
         TestStruct {
             id: 0,
-            name: "first".to_string(),
-            values: vec![],
+            name: "first",
         },
         TestStruct {
             id: 42,
-            name: "second".to_string(),
-            values: vec![i16::MIN, 42, i16::MAX],
+            name: "second",
         }
     ]);
 }

@@ -11,6 +11,9 @@ keywords = ["no-std", "serialization", "big-endian", "embedded", "network"]
 categories = ["encoding", "no-std", "network-programming"]
 authors = ["humacss"]
 
+[dependencies]
+# No dependencies
+
 [dev-dependencies]
 criterion = { version = "0.8", features = ["html_reports"] }
 

@@ -1,48 +1,53 @@
-//! Automatic implementations of `ToFromBytes` for tuples up to 12 elements.
+//! Implementations of `ToFromBytes` for tuples with up to 12 elements.
 //!
-//! Each element is serialized in order with no separator or length prefix.
-//! This keeps the format minimal and predictable.
+//! These allow serializing/deserializing tuples without manual impls, as long as all elements implement `ToFromBytes`.
 
-use crate::{from_bytes, to_bytes, ToFromBytes, ToFromByteError};
-use alloc::vec::Vec;
+use crate::{ToFromBytes, ToFromByteError, BytesReader, BytesWriter};
 
-macro_rules! implement_tuple {
-    ($($item:ident),+) => {
-        // Allows single letter capitalized inputs to the implement_tuple! function
+
+macro_rules! impl_tuple {
+    ($($T:ident),+) => {
         #[allow(non_snake_case)]
-        impl<$($item: ToFromBytes),+> ToFromBytes for ($($item,)+)
-        {
-            /// Serialize each field sequentially.
-            fn to_bytes(&self) -> Result<Vec<u8>, ToFromByteError> {
-                let mut bytes = Vec::new();
+        impl<'de, $($T: ToFromBytes<'de>),+> ToFromBytes<'de> for ($($T,)+) {
+            #[inline(always)]
+            fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
+                let ($($T,)+) = self;
                 
-                let ($($item,)+) = self;
-                $(bytes.extend(to_bytes($item)?);)+
+                $($T.to_bytes(writer)?;)+
                 
-                Ok(bytes)
+                Ok(())
             }
 
-            /// Deserialize each field sequentially.
-            /// Stops and returns an error as soon as any field fails.
-            #[allow(non_snake_case)]
-            fn from_bytes(mut bytes: &[u8]) -> Result<(Self, &[u8]), ToFromByteError> {                
-                $(let ($item, remaining) = from_bytes::<$item>(bytes)?; bytes = remaining;)+
+            #[inline(always)]
+            fn from_bytes(reader: &mut BytesReader<'de>) -> Result<(Self, &'de [u8]), ToFromByteError> {
+                let value = ($( {
+                    let (item, _) = $T::from_bytes(reader)?;
 
-                Ok((($($item,)+), bytes))
+                    item
+                }, )+);
+
+                Ok((value, reader.remainder()))
+            }
+
+            #[inline(always)]
+            fn byte_count(&self) -> usize {
+                let ($($T,)+) = self;
+
+                0 $(+ $T.byte_count())+
             }
         }
     };
 }
 
-implement_tuple!(A);
-implement_tuple!(A, B);
-implement_tuple!(A, B, C);
-implement_tuple!(A, B, C, D);
-implement_tuple!(A, B, C, D, E);
-implement_tuple!(A, B, C, D, E, F);
-implement_tuple!(A, B, C, D, E, F, G);
-implement_tuple!(A, B, C, D, E, F, G, H);
-implement_tuple!(A, B, C, D, E, F, G, H, I);
-implement_tuple!(A, B, C, D, E, F, G, H, I, J);
-implement_tuple!(A, B, C, D, E, F, G, H, I, J, K);
-implement_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
+impl_tuple!(A);
+impl_tuple!(A, B);
+impl_tuple!(A, B, C);
+impl_tuple!(A, B, C, D);
+impl_tuple!(A, B, C, D, E);
+impl_tuple!(A, B, C, D, E, F);
+impl_tuple!(A, B, C, D, E, F, G);
+impl_tuple!(A, B, C, D, E, F, G, H);
+impl_tuple!(A, B, C, D, E, F, G, H, I);
+impl_tuple!(A, B, C, D, E, F, G, H, I, J);
+impl_tuple!(A, B, C, D, E, F, G, H, I, J, K);
+impl_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
