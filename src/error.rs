@@ -1,20 +1,12 @@
+//! Error types for serialization and deserialization operations.
 use core::fmt;
 
-/// All errors that can occur during serialization/deserialization.
+/// Errors that can occur during serialization or deserialization with `simbin`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ToFromByteError {
-    /// Not enough bytes remaining in the input buffer.
-    ///
-    /// Examples:
-    /// - wrong type specified for deserialization
+    /// The buffer or data slice does not have enough bytes for the operation.
     NotEnoughBytes,
-    /// The data is corrupted or semantically invalid.
-    ///
-    /// Examples: 
-    /// - wrong type specified for deserialization
-    /// - invalid UTF-8
-    /// - integer overflow
-    /// - container length > u32
+    /// The deserialized value is invalid for the type (e.g., invalid bool, UTF-8).
     InvalidValue,
 }
 

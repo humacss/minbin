@@ -1,27 +1,25 @@
-use simbin::{assert_roundtrip};
-
-#[test]
-fn test_strings() {
-    assert_roundtrip!(String, vec![
-        String::from(""),
-        String::from("test string")
-    ]);    
-}
-
-#[test]
-fn test_vecs() {
-    assert_roundtrip!(Vec<u32>, vec![
-        vec![],
-        vec![u32::MIN, 42, u32::MAX],
-    ]);
-}
+use simbin::{ToFromBytes, write_bytes, read_bytes};
 
 #[test]
 fn test_options() {
-    assert_roundtrip!(Option<u32>, vec![
-        None,
-        Some(u32::MIN),
-        Some(42),
-        Some(u32::MAX),
-    ]);
+    for expected in [None, Some(u32::MIN), Some(42), Some(u32::MAX)] {
+        let mut buffer = vec![0u8; expected.byte_count()];
+        let write_pos = write_bytes(&expected, &mut buffer).unwrap();
+        let (actual, read_pos): (Option<u32>, usize) = read_bytes(&buffer[..write_pos]).unwrap();
+
+        assert_eq!(expected.byte_count(),   read_pos);
+        assert_eq!(expected,                actual);
+    }   
+}
+
+#[test]
+fn test_strs() {
+    for expected in ["", "something", "else"] {
+        let mut buffer = vec![0u8; expected.byte_count()];
+        let write_pos = write_bytes(&expected, &mut buffer).unwrap();
+        let (actual, read_pos): (&str, usize) = read_bytes(&buffer[..write_pos]).unwrap();
+
+        assert_eq!(expected.byte_count(),   read_pos);
+        assert_eq!(expected,                actual);
+    }    
 }

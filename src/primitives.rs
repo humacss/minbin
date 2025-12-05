@@ -1,54 +1,63 @@
-//! Implementations of `ToFromBytes` for primitive types.
-//! All integers are serialized in **big-endian** (network order).
+use crate::{ToFromBytes, ToFromByteError, BytesWriter, BytesReader};
 
-use alloc::vec;
-use alloc::vec::Vec;
-
-use crate::{ToFromBytes, ToFromByteError};
-
+// Get rid of the macro
 macro_rules! implement_int {
-    ($($int_type:ty, $byte_count:expr;)*) => {$(
-        impl ToFromBytes for $int_type {
-            /// Serialize as big-endian bytes.
-            fn to_bytes(&self) -> Result<Vec<u8>, ToFromByteError> {
-                Ok(self.to_be_bytes().to_vec())
+    ($($ty:ty => $size:expr),* $(,)?) => {$(
+        impl ToFromBytes<'_> for $ty {
+            #[inline(always)]
+            fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
+                writer.write_bytes(&self.to_be_bytes())
             }
-            
-            /// Deserialize from big-endian bytes.
-            /// Fails with `NotEnoughBytes` if fewer than `$byte_count` bytes remain.
-            fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), ToFromByteError> {
-                if bytes.len() < $byte_count {
-                    return Err(ToFromByteError::NotEnoughBytes);
-                }
+
+            #[inline(always)]
+            fn from_bytes<'de>(reader: &mut BytesReader<'de>) -> Result<(Self, usize), ToFromByteError> {
+                let bytes = reader.read_bytes($size)?;
                 
-                let arr = <[u8; $byte_count]>::try_from(&bytes[..$byte_count]).unwrap();
+                let value = Self::from_be_bytes(bytes.try_into().unwrap());
                 
-                Ok((Self::from_be_bytes(arr), &bytes[$byte_count..]))
+                Ok((value, reader.pos))
+            }
+
+            #[inline(always)]
+            fn byte_count(&self) -> usize {
+                $size
             }
         }
-    )*};
+    )*}
 }
 
 implement_int! {
-    u8, 1;  i8, 1;
-    u16, 2; i16, 2;
-    u32, 4; i32, 4;
-    u64, 8; i64, 8;
-    u128, 16; i128, 16;
+    u8   => 1,
+    i8   => 1,
+    u16  => 2,
+    i16  => 2,
+    u32  => 4,
+    i32  => 4,
+    u64  => 8,
+    i64  => 8,
+    u128 => 16,
+    i128 => 16,
 }
 
-impl ToFromBytes for bool {
-    /// `true` → `[1]`, `false` → `[0]`
-    fn to_bytes(&self) -> Result<Vec<u8>, ToFromByteError> {
-        Ok(vec![*self as u8])
+impl ToFromBytes<'_> for bool {
+    #[inline(always)]
+    fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
+        writer.write_bytes(&[if *self { 1 } else { 0 }])
     }
 
-    /// Any non-zero byte is interpreted as `true`. (change to error if not 0 or 1)
-    /// Returns `NotEnoughBytes` if input is empty.
-    fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), ToFromByteError> {
-        if bytes.is_empty() {
-            return Err(ToFromByteError::NotEnoughBytes);
+    #[inline(always)]
+    fn from_bytes<'de>(reader: &mut BytesReader<'de>) -> Result<(Self, usize), ToFromByteError> {
+        let value = reader.read_bytes(1)?[0];
+
+        match value {
+            0 => Ok((false, reader.pos)),
+            1 => Ok((true, reader.pos)),
+            _ => Err(ToFromByteError::InvalidValue),
         }
-        Ok((bytes[0] == 1, &bytes[1..]))
+    }
+
+    #[inline(always)]
+    fn byte_count(&self) -> usize {
+        1
     }
 }
