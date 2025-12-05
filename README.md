@@ -1,15 +1,14 @@
 # simbin
 Just use this one.
 
-When you control both sides, they’re using Rust, 
-and you just want your struct as bytes without thinking too hard.
+When you control both sides, they’re using Rust, and you just want your struct as bytes without thinking too hard.
 
-You don’t want to open a new repo and see a workspace with a crate list.
-You don’t want a dependency tree that scrolls.
-You don’t want unsafe code.
-You don’t want any derive/attribute magic.
+- You don’t want to open a new repo and see a workspace with a crate list.  
+- You don’t want a dependency tree that scrolls.  
+- You don’t want unsafe code.  
+- You don’t want any derive/attribute magic.  
+- You just want the bytes.  
 
-You just want the bytes. 
 Today.
 
 ```toml
@@ -78,6 +77,7 @@ mod tests {
 
 ## Keep it Simple
 `simbin` is a binary serializer that optimizes for humans first.
+
 Performance? It is very fast, you just don't have to trade your sanity for cycles.
 
 What you get with `simbin`:
@@ -91,11 +91,13 @@ What you get with `simbin`:
 
 You own every byte, every time, with zero magic in the way.
 
-If you have to talk to another system that forces a format on you, reach for something heavier.
+If you have to talk to another system that forces a format on you, reach for something heavier.  
 Otherwise, `simbin` is the serialization crate you can start with on any project.
 
 You’ll understand it at 3 a.m., your bugfix will be ready before sunrise, and you’ll never hesitate to add it.
-Start here. Stay here.
+
+Start here.  
+Stay here.
 
 You probably won’t need anything else.
 
@@ -111,8 +113,9 @@ Those tools are amazing when you need what they do.
 - Your messages are small and don't need to be streamed
 - Serialization is not your bottleneck
 
-Adding too many moving parts will just complicate your code unnecessarily. 
-That's why `simbin` focuses on simplicity first. 
+Adding too many moving parts will just complicate your code unnecessarily.  
+
+That's why `simbin` focuses on simplicity first.  
 If you can write Rust, you can use and debug `simbin`.
 
 ### What `simbin` actually is
@@ -142,7 +145,7 @@ That's on one core.
 This should be faster than your other bottlenecks.
 
 ### Why the tone up top?
-Most serialization crates greet you with feature lists, configuration options, gotchas... 
+Most serialization crates greet you with feature lists, configuration options, gotchas...  
 I usually have to read half the docs before I even know whether the crate is a good fit.
 
 I wanted you to get the answer in ten seconds flat: “Is this for me? Yes or no?”
@@ -161,7 +164,7 @@ If `simbin` fits your need, I hope it saves you a bunch of time and a few sleepl
 
 ## Why yet another serializer?
 
-Most Rust projects need to turn a struct into bytes and back at some point.
+Many Rust projects need to turn a struct into bytes and back at some point.
 
 Yet almost every other crate forces you to commit on day one to features you probably don’t need yet:
 
@@ -179,9 +182,11 @@ It’s deliberately bare-bones, fully auditable, and has zero hidden behavior.
 
 You write the serialization code yourself, so you always understand exactly what’s on the wire. 
 
-When (and only when) you hit a real limitation, migration is trivial: rewrite clearly defined serialization code you already own against a different crate.
+When (and only when) you hit a real limitation, migration is trivial: rewrite the clearly defined serialization code you already own against a different crate.
 
-Start with `simbin`. Ship code today.
+Start with `simbin`.   
+Ship code today.  
+
 Only graduate to something heavier when you can name the precise problem you’re solving.
 
 For most projects, that day comes later than you would expect.
