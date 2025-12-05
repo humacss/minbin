@@ -158,3 +158,30 @@ If `simbin` fits your need, I hope it saves you a bunch of time and a few sleepl
 - You have to talk to other languages or need schema evolution: **protobuf**, **flatbuffers**, or **cap’n proto**
 
 `simbin` deliberately gives up all of the above to stay simple, auditable and predictable.
+
+## Why yet another serializer?
+
+Most Rust projects need to turn a struct into bytes and back at some point.
+
+Yet almost every other crate forces you to commit on day one to features you probably don’t need yet:
+
+- schema evolution
+- zero-copy deserialization
+- cross-language support
+- versioning
+- compact wire format
+
+Picking wrong means pain later: you either live with the wrong trade-offs forever or pay a heavy migration tax.
+
+`simbin` refuses to make you choose.
+
+It’s deliberately bare-bones, fully auditable, and has zero hidden behavior. 
+
+You write the serialization code yourself, so you always understand exactly what’s on the wire. 
+
+When (and only when) you hit a real limitation, migration is trivial: rewrite clearly defined serialization code you already own against a different crate.
+
+Start with `simbin`. Ship code today.
+Only graduate to something heavier when you can name the precise problem you’re solving.
+
+For most projects, that day comes later than you would expect.
