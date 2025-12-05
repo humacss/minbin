@@ -1,3 +1,4 @@
+// Get rid of the macro
 macro_rules! bencher {
     ($c:expr, $ty:ty, $name:expr, $cases:expr) => {{
         use std::hint::black_box;
@@ -6,7 +7,6 @@ macro_rules! bencher {
         let mut group = $c.benchmark_group($name);
 
         for (i, case) in $cases.iter().enumerate() {
-            // Pre-compute size once
             let size = <$ty as ToFromBytes>::byte_count(case);
 
             group.bench_function(format!("ser_{i}"), |b| {
@@ -21,7 +21,6 @@ macro_rules! bencher {
                 )
             });
 
-            // Serialize once to get real data for deserialization
             let mut real_buffer = vec![0u8; size];
             {
                 let mut writer = BytesWriter::new(&mut real_buffer);
@@ -44,35 +43,49 @@ macro_rules! bencher {
     }};
 }
 
+use rand::{SeedableRng};
 use criterion::Criterion;
 use criterion::{criterion_group, criterion_main};
 use simbin::{ToFromBytes, ToFromByteError, BytesWriter, BytesReader};
 
+fn deterministic_random_str(byte_len: usize) -> String {
+    let mut rng = rand::rngs::SmallRng::seed_from_u64(0);
+    let my_str = rand_utf8::rand_utf8(&mut rng, byte_len);
+
+    my_str.to_string()
+}
 
 type BenchTuple<'a> = (u32, &'a str, Option<u64>, u16, bool);
 
 #[derive(Debug, PartialEq)]
 struct BenchStruct<'a> {
-    id: u32,
-    name: &'a str,
+    uuid: u128, // 16 bytes
+    counter: u32, // 4 bytes
+    reading: &'a str,
+    timestamp: i64 // 8 bytes
 }
 
-impl<'de> ToFromBytes<'de> for BenchStruct<'de> {
-    fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
-        self.id.to_bytes(writer)?;
-        self.name.to_bytes(writer)?;
+impl<'a> ToFromBytes<'a> for BenchStruct<'a> {
+    fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
+        writer.write(&self.uuid)?;
+        writer.write(&self.counter)?;
+        writer.write(&self.reading)?;
+        writer.write(&self.timestamp)?;
 
         Ok(())
     }
 
-    fn from_bytes(reader: &mut BytesReader<'de>) -> Result<(Self, &'de [u8]), ToFromByteError> {
-        let (id, _) = u32::from_bytes(reader)?;
-        let (name, remainder) = <&str>::from_bytes(reader)?;
-        Ok((BenchStruct { id, name }, remainder))
+    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
+        let uuid = reader.read()?;
+        let counter = reader.read()?;
+        let reading = reader.read()?;
+        let timestamp = reader.read()?;
+
+        Ok((BenchStruct { uuid, counter, reading, timestamp }, reader.pos))
     }
 
     fn byte_count(&self) -> usize {
-        self.id.byte_count() + self.name.byte_count()
+        self.uuid.byte_count() + self.counter.byte_count() + self.reading.byte_count() + self.timestamp.byte_count()
     }
 }
 
@@ -85,17 +98,20 @@ pub fn bench_primitives(runner: &mut Criterion) {
     bencher!(runner, bool, "bool", &[false, true]);
 }
 
+
 pub fn bench_containers(runner: &mut Criterion) {
-    bencher!(runner, &str, "str_small", &["", "a", "hello", "simbin", "rust"]);
-    bencher!(runner, &str, "str_10kb", &["a".repeat(10_000).as_str()]); // should repeat unique characters
+    bencher!(runner, &str, "str_empty", &[deterministic_random_str(0).as_str()]);
+    bencher!(runner, &str, "str_50b", &[deterministic_random_str(50).as_str()]);
+    bencher!(runner, &str, "str_100b", &[deterministic_random_str(100).as_str()]);
+    bencher!(runner, &str, "str_300b", &[deterministic_random_str(300).as_str()]);
 
     bencher!(runner, Option<u32>, "option_none", &[None]);
     bencher!(runner, Option<u32>, "option_some", &[Some(0), Some(42), Some(u32::MAX)]);
 }
 
 pub fn bench_structs(runner: &mut Criterion) {
-    bencher!(runner, BenchStruct,"struct", &[
-        BenchStruct { id: 1,   name: "ping" },
+    bencher!(runner, BenchStruct, "struct_78b", &[
+        BenchStruct { uuid: 1,  counter: 2, timestamp: 3, reading: deterministic_random_str(50).as_str() },
     ]);
 }
 

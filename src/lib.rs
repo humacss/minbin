@@ -1,14 +1,6 @@
-//! `simbin` is a simple, zero-dependency, big-endian binary serializer optimized for ease of use and auditability.
-//! 
-//! It is designed for scenarios where you control both sides of the serialization, both are in Rust, and simplicity is prioritized over advanced features like versioning or cross-language support.
-//! See the [README](https://github.com/humacss/simbin) for examples and more details.
-
-
 #![no_std]
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
-
-extern crate alloc;
+//#![deny(missing_docs)]
 
 /// Contains all error states for the crate.
 pub mod error;
@@ -24,5 +16,26 @@ pub mod tuples;
 pub mod cursors;
 
 pub use error::ToFromByteError;
-pub use bytes::{ToFromBytes, to_bytes, from_bytes};
+pub use bytes::{ToFromBytes};
 pub use cursors::{BytesReader, BytesWriter};
+
+#[inline]
+pub fn write_bytes<'a, T: ToFromBytes<'a>>(value: &T, buffer: &'a mut [u8]) -> Result<usize, ToFromByteError> {	
+	if buffer.len() < value.byte_count() {
+        return Err(ToFromByteError::NotEnoughBytes);
+    }
+
+	let mut writer = BytesWriter::new(buffer);
+	value.to_bytes(&mut writer)?;
+     
+    Ok(writer.pos)
+}
+
+#[inline]
+pub fn read_bytes<'a, T: ToFromBytes<'a>>(buffer: &'a [u8]) -> Result<(T, usize), ToFromByteError> {
+    let mut reader = BytesReader::new(buffer);
+
+    let value = reader.read()?;
+    
+    Ok((value, reader.pos))
+}

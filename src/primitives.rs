@@ -1,25 +1,21 @@
-//! Implementations of `ToFromBytes` for primitive types.
-//!
-//! All integers are serialized in big-endian (network) byte order. 
-//! These are re-exported in the crate root for convenience.
-
 use crate::{ToFromBytes, ToFromByteError, BytesWriter, BytesReader};
 
+// Get rid of the macro
 macro_rules! implement_int {
     ($($ty:ty => $size:expr),* $(,)?) => {$(
         impl ToFromBytes<'_> for $ty {
             #[inline(always)]
             fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
-                writer.write(&self.to_be_bytes())
+                writer.write_bytes(&self.to_be_bytes())
             }
 
             #[inline(always)]
-            fn from_bytes<'de>(reader: &mut BytesReader<'de>) -> Result<(Self, &'de [u8]), ToFromByteError> {
-                let bytes = reader.read($size)?;
+            fn from_bytes<'de>(reader: &mut BytesReader<'de>) -> Result<(Self, usize), ToFromByteError> {
+                let bytes = reader.read_bytes($size)?;
                 
                 let value = Self::from_be_bytes(bytes.try_into().unwrap());
                 
-                Ok((value, reader.remainder()))
+                Ok((value, reader.pos))
             }
 
             #[inline(always)]
@@ -46,16 +42,16 @@ implement_int! {
 impl ToFromBytes<'_> for bool {
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
-        writer.write(&[if *self { 1 } else { 0 }])
+        writer.write_bytes(&[if *self { 1 } else { 0 }])
     }
 
     #[inline(always)]
-    fn from_bytes<'de>(reader: &mut BytesReader<'de>) -> Result<(Self, &'de[u8]), ToFromByteError> {
-        let value = reader.read(1)?[0];
+    fn from_bytes<'de>(reader: &mut BytesReader<'de>) -> Result<(Self, usize), ToFromByteError> {
+        let value = reader.read_bytes(1)?[0];
 
         match value {
-            0 => Ok((false, reader.remainder())),
-            1 => Ok((true, reader.remainder())),
+            0 => Ok((false, reader.pos)),
+            1 => Ok((true, reader.pos)),
             _ => Err(ToFromByteError::InvalidValue),
         }
     }

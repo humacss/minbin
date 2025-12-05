@@ -1,16 +1,12 @@
-//! Implementations of `ToFromBytes` for tuples with up to 12 elements.
-//!
-//! These allow serializing/deserializing tuples without manual impls, as long as all elements implement `ToFromBytes`.
-
 use crate::{ToFromBytes, ToFromByteError, BytesReader, BytesWriter};
 
-
+// Get rid of the macro
 macro_rules! impl_tuple {
     ($($T:ident),+) => {
         #[allow(non_snake_case)]
         impl<'de, $($T: ToFromBytes<'de>),+> ToFromBytes<'de> for ($($T,)+) {
             #[inline(always)]
-            fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
+            fn to_bytes(&self, writer: &mut BytesWriter<'de>) -> Result<(), ToFromByteError> {
                 let ($($T,)+) = self;
                 
                 $($T.to_bytes(writer)?;)+
@@ -19,14 +15,14 @@ macro_rules! impl_tuple {
             }
 
             #[inline(always)]
-            fn from_bytes(reader: &mut BytesReader<'de>) -> Result<(Self, &'de [u8]), ToFromByteError> {
+            fn from_bytes(reader: &mut BytesReader<'de>) -> Result<(Self, usize), ToFromByteError> {
                 let value = ($( {
                     let (item, _) = $T::from_bytes(reader)?;
 
                     item
                 }, )+);
 
-                Ok((value, reader.remainder()))
+                Ok((value, reader.pos))
             }
 
             #[inline(always)]

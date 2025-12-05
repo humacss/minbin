@@ -1,32 +1,33 @@
-//! Implementations of `ToFromBytes` for common container types.
-//!
-//! These are re-exported in the crate root for convenience.
-
 use crate::{ToFromBytes, ToFromByteError, BytesReader, BytesWriter};
 
-
-impl<'de, T: ToFromBytes<'de>> ToFromBytes<'de> for Option<T> {
+impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
     #[inline(always)]
-    fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
+    fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         match self {
-            Option::None => writer.write(&[0]),
+            Option::None => {
+                writer.write(&0u8)?;
+
+                Ok(())
+            },
             Option::Some(value) => {
-                writer.write(&[1])?;
-                value.to_bytes(writer)
+                writer.write(&1u8)?;
+                writer.write(value)?;
+
+                Ok(())
             }
         }
     }
 
     #[inline(always)]
-    fn from_bytes(reader: &mut BytesReader<'de>) -> Result<(Self, &'de [u8]), ToFromByteError> {
-        let option_byte = reader.read(1)?[0];
+    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
+        let option_byte = reader.read_bytes(1)?[0];
 
         match option_byte {
-            0 => Ok((None, reader.remainder())),
+            0 => Ok((None, reader.pos)),
             1 => {
-                let (value, remainder) = T::from_bytes(reader)?;
+                let (value, _reader_pos) = T::from_bytes(reader)?;
                 
-                Ok((Some(value), remainder))
+                Ok((Some(value), reader.pos))
             }
             _ => Err(ToFromByteError::InvalidValue),
         }
@@ -39,29 +40,31 @@ impl<'de, T: ToFromBytes<'de>> ToFromBytes<'de> for Option<T> {
     }
 }
 
-impl<'de> ToFromBytes<'de> for &'de str {
+impl<'a> ToFromBytes<'a> for &'a str {
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         let len = u32::try_from(self.len()).map_err(|_| ToFromByteError::InvalidValue)?;
-        len.to_bytes(writer)?;
-        writer.write(self.as_bytes())?;
+        
+        writer.write(&len)?;
+        writer.write_bytes(self.as_bytes())?;
 
         Ok(())
     }
 
     #[inline(always)]
-    fn from_bytes(reader: &mut BytesReader<'de>) -> Result<(Self, &'de [u8]), ToFromByteError> {
+    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
         let (len, _remainder) = u32::from_bytes(reader)?;
 
-        let bytes = reader.read(len as usize)?;
+        let bytes = reader.read_bytes(len as usize)?;
 
         let value = core::str::from_utf8(bytes).map_err(|_| ToFromByteError::InvalidValue)?;
 
-        Ok((value, reader.remainder()))
+        Ok((value, reader.pos))
     }
 
     #[inline(always)]
     fn byte_count(&self) -> usize {
+        // overflow issues needs to be handled
         4 + self.len()
     }
 }
