@@ -20,6 +20,7 @@ simbin = "0.1"
 ```rust
 use simbin::{BytesReader, BytesWriter, ToFromBytes, ToFromByteError};
 
+#[derive(Debug, PartialEq)] // for tests
 struct ExampleStruct<'a> {
     uuid: u128,
     timestamp: i64,
@@ -29,48 +30,36 @@ struct ExampleStruct<'a> {
 
 impl<'a> ToFromBytes<'a> for ExampleStruct<'a> {
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
-        writer.write(&self.uuid)?;
-        writer.write(&self.timestamp)?;
-        writer.write(&self.name)?;
-        writer.write(&self.reading)?;
+        writer.write(&(self.uuid, self.timestamp, self.name, self.reading))?;
 
         Ok(())
     }
 
     fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let uuid      = reader.read()?;
-        let timestamp = reader.read()?;
-        let name      = reader.read()?;
-        let reading   = reader.read()?;
+        let (uuid, timestamp, name, reading) = reader.read()?;
 
         Ok((ExampleStruct { uuid, timestamp, name, reading }, reader.pos))
     }
 
     fn byte_count(&self) -> usize {
-        self.uuid.byte_count() + 
-        self.timestamp.byte_count() +
-        self.name.byte_count() +
-        self.reading.byte_count()
+        (self.uuid, self.timestamp, self.name, self.reading).byte_count()
     }
 }
+```
 
+```rust
 #[cfg(test)]
 mod tests {    
     use simbin::{to_bytes, from_bytes};
 
     #[test]
-    fn test_example_struct() {
+    fn test_roundtrip() {
         let expected = ExampleStruct{ uuid: 0, timestamp: 1, name: "example", reading: 2 };
 
-        let mut buffer = vec![0u8; expected.byte_count()];
-        let write_pos = write_bytes(&expected, &mut buffer).unwrap();
-        let (actual, read_pos): (ExampleStruct, usize) = read_bytes(&buffer[..write_pos]).unwrap();
+        let bytes = to_bytes(&expected).unwrap();
+        let actual = from_bytes(&bytes).unwrap();
 
-        assert_eq!(expected.byte_count(),   read_pos);
-        assert_eq!(expected.uuid,           actual.uuid);
-        assert_eq!(expected.timestamp,      actual.timestamp);
-        assert_eq!(expected.name,           actual.name);
-        assert_eq!(expected.reading,        actual.reading);
+        assert_eq!(expected, actual);
     }
 }
 ```
