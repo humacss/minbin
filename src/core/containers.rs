@@ -20,12 +20,12 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
 
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let option_byte = reader.read_bytes(1)?[0];
+        let option_byte: u8 = reader.read()?;
 
         match option_byte {
             0 => Ok((None, reader.pos)),
             1 => {
-                let (value, _reader_pos) = T::from_bytes(reader)?;
+                let value = reader.read()?;
                 
                 Ok((Some(value), reader.pos))
             }
@@ -53,7 +53,7 @@ impl<'a> ToFromBytes<'a> for &'a str {
 
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let (len, _remainder) = u32::from_bytes(reader)?;
+        let len: u32 = reader.read()?;
 
         let bytes = reader.read_bytes(len as usize)?;
 
@@ -68,4 +68,6 @@ impl<'a> ToFromBytes<'a> for &'a str {
         4 + self.len()
     }
 }
+
+
 

@@ -92,6 +92,7 @@ What you get with `simbin`:
 You own every byte, every time, with zero magic in the way.
 
 If you have to talk to another system that forces a format on you, reach for something heavier.  
+
 Otherwise, `simbin` is the serialization crate you can start with on any project.
 
 You’ll understand it at 3 a.m., your bugfix will be ready before sunrise, and you’ll never hesitate to add it.
@@ -104,6 +105,7 @@ You probably won’t need anything else.
 ## Now that I have your attention...
 
 `simbin` is **not** trying to replace `serde`, `postcard`, `bincode`, `rkyv`, `flatbuffers`, or anything else.  
+
 Those tools are amazing when you need what they do.
 
 `simbin` is deliberately for the case where:
@@ -116,6 +118,7 @@ Those tools are amazing when you need what they do.
 Adding too many moving parts will just complicate your code unnecessarily.  
 
 That's why `simbin` focuses on simplicity first.  
+
 If you can write Rust, you can use and debug `simbin`.
 
 ### What `simbin` actually is
@@ -141,16 +144,17 @@ Real-world takeaway:
 - Serializing a 78 byte game packet: **~143 million times / second**
 - Deserializing the same packet: **~25 million times / second**
 
-That's on one core.
-This should be faster than your other bottlenecks.
+That's on one core. This should be faster than your other bottlenecks.
 
 ### Why the tone up top?
 Most serialization crates greet you with feature lists, configuration options, gotchas...  
+
 I usually have to read half the docs before I even know whether the crate is a good fit.
 
 I wanted you to get the answer in ten seconds flat: “Is this for me? Yes or no?”
 
 If you’re still here, I hope you already know which camp you’re in.  
+
 If `simbin` fits your need, I hope it saves you a bunch of time and a few sleepless nights.
 
 ### If `simbin` isn’t for you, here are some alternatives

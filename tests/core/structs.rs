@@ -63,4 +63,3 @@ fn test_struct_heap() {
     assert_eq!(expected.name,           actual.name);
     assert_eq!(expected.reading,        actual.reading);
 }
-

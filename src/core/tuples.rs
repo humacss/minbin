@@ -17,7 +17,7 @@ macro_rules! impl_tuple {
             #[inline(always)]
             fn from_bytes(reader: &mut BytesReader<'de>) -> Result<(Self, usize), ToFromByteError> {
                 let value = ($( {
-                    let (item, _) = $T::from_bytes(reader)?;
+                    let item: $T = reader.read()?;
 
                     item
                 }, )+);
