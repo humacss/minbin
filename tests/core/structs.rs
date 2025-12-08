@@ -9,28 +9,19 @@ struct ExampleStruct<'a> {
 
 impl<'a> ToFromBytes<'a> for ExampleStruct<'a> {
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
-        writer.write(&self.uuid)?;
-        writer.write(&self.timestamp)?;
-        writer.write(&self.name)?;
-        writer.write(&self.reading)?;
+        writer.write(&(self.uuid, self.timestamp, self.name, self.reading))?;
 
         Ok(())
     }
 
     fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let uuid      = reader.read()?;
-        let timestamp = reader.read()?;
-        let name      = reader.read()?;
-        let reading   = reader.read()?;
+        let (uuid, timestamp, name, reading) = reader.read()?;
 
         Ok((ExampleStruct { uuid, timestamp, name, reading }, reader.pos))
     }
 
     fn byte_count(&self) -> usize {
-        self.uuid.byte_count() + 
-        self.timestamp.byte_count() +
-        self.name.byte_count() +
-        self.reading.byte_count()
+        (self.uuid, self.timestamp, self.name, self.reading).byte_count()
     }
 }
 
@@ -63,3 +54,4 @@ fn test_struct_heap() {
     assert_eq!(expected.name,           actual.name);
     assert_eq!(expected.reading,        actual.reading);
 }
+

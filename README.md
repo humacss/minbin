@@ -53,7 +53,9 @@ impl<'a> ToFromBytes<'a> for ExampleStruct<'a> {
         self.reading.byte_count()
     }
 }
+```
 
+```rust
 #[cfg(test)]
 mod tests {    
     use simbin::{to_bytes, from_bytes};
