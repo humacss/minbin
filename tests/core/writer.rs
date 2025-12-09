@@ -1,4 +1,4 @@
-use simbin::{ToFromByteError, BytesWriter};
+use minbin::{ToFromByteError, BytesWriter};
 
 #[test]
 fn writer_partial() {

@@ -1,4 +1,4 @@
-use simbin::{ToFromByteError, BytesReader};
+use minbin::{ToFromByteError, BytesReader};
 
 #[test]
 fn reader_partial() {

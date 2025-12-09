@@ -1,4 +1,4 @@
-use simbin::{BytesWriter, BytesReader, ToFromBytes, ToFromByteError, write_bytes, read_bytes};
+use minbin::{BytesWriter, BytesReader, ToFromBytes, ToFromByteError, write_bytes, read_bytes};
 
 struct ExampleStruct<'a> {
     uuid: u128,

@@ -1,11 +1,11 @@
 [package]
-name = "simbin"
+name = "minbin"
 version = "0.0.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-description = "A manual, zero-dependency, no-std, big-endian binary serializer"
-repository = "https://github.com/humacss/simbin"
-documentation = "https://docs.rs/simbin"
+description = "Minimal, manual, no-std, zero-dependency, big-endian binary serialization."
+repository = "https://github.com/humacss/minbin"
+documentation = "https://docs.rs/minbin"
 readme = "README.md"
 categories = ["encoding", "no-std", "network-programming"]
 keywords = ["serialization", "no-std", "binary", "encoding", "manual"]

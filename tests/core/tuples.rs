@@ -1,4 +1,4 @@
-use simbin::{ToFromBytes, write_bytes, read_bytes};
+use minbin::{ToFromBytes, write_bytes, read_bytes};
 
 #[test]
 fn test_tuple_2() {
