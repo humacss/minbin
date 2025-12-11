@@ -24,3 +24,6 @@ alloc = []
 [[bench]]
 name = "main"
 harness = false
+
+[package.metadata.docs.rs]
+all-features = true

@@ -40,6 +40,7 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
     }
 }
 
+
 impl<'a> ToFromBytes<'a> for &'a str {
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {

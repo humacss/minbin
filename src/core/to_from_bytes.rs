@@ -2,14 +2,19 @@ use super::{ToFromByteError};
 
 use crate::{BytesReader, BytesWriter};
 
-/// The heart of minbin: one trait you implement yourself.
+/// The heart of minbin.
+///
+/// You implement this trait by hand. No derives or macros available except your own *(and ours for tuples)*.
 ///
 /// Why manual?
-/// - You decide field order, padding, and versioning explicitly.
-/// - The wire format lives in your code, not in proc-macro output you can’t easily read or predict.
-/// - Changing the format never requires a crate upgrade or migration tooling.
-/// - Auditing or fixing the serialization is just reading your own ~20-line implementation.
-
+/// - You own the format. No hidden field reordering, no padding surprises.
+/// - Debugging a serialization bug is just reading pure Rust code, not reverse-engineering derives, macros or attributes.
+/// - Migrating away from minbin later is trivial because the format is already explicit in your code, no surprises.
+///
+/// The trait is deliberately minimal:
+/// - `byte_count`: Enables preallocation and exact buffer sizing. Critical for no-std/stack buffers.
+/// - `to_bytes`:   Writes into an existing buffer. No intermediate allocations.
+/// - `from_bytes`: Returns the final cursor position. You can parse multiple messages from one buffer.
 pub trait ToFromBytes<'a> {    
     /// Serializes the value into the provided writer.
     ///

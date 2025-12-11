@@ -1,7 +1,12 @@
 //! Core functionality – always available, no allocation required.
 //!
-//! Each module is kept separate so you can see exactly why it exists and jump straight to the code that matters.
-//! The design favors explicit borrows and small, composable pieces over convenience that would hide details.
+//! Everything in this module works with `&[u8]` / `&mut [u8]` borrows only.
+//!
+//! Why? Because owning a `Vec<u8>` for every packet is inefficient and `no-std` 
+//! environments often can’t allocate at all.
+//!
+//! By forcing borrows we get zero-cost, zero-allocation, and explicit lifetimes.
+//! This gives us close to as good performance as we can get with safe Rust.
 
 /// The public API intended for consumption
 pub mod api;

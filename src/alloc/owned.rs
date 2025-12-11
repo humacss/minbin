@@ -1,3 +1,8 @@
+//! Implementations of `ToFromBytes` for owned collection types (`String`, `Vec<T>`).
+//!
+//! These live in the `alloc` crate because they require allocation during deserialization.
+//! The core crate remains completely `no-std` and zero-allocation.
+
 extern crate alloc;
 
 use alloc::vec::Vec;

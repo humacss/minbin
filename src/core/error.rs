@@ -2,12 +2,14 @@ use core::fmt;
 
 /// Single error type used throughout minbin.
 ///
-/// Only two variants are needed for our model. Custom enum keeps us `no-std` and zero-size overhead compared to `std::io::Error`.
+/// Only three variants are needed for our model. 
+/// Custom enum keeps us `no-std` and zero-size overhead compared to `std::io::Error`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ToFromByteError {
     /// The buffer or data slice does not have enough bytes for the operation.
     NotEnoughBytes,
     /// The value was read successfully, but the buffer contained extra bytes afterward.
+    ///
     /// These bytes would be silently dropped if we returned Ok().
     TrailingBytes,
     /// The deserialized value is invalid for the type (e.g., invalid bool, UTF-8).
