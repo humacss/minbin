@@ -53,7 +53,7 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
 ```rust
 #[cfg(test)]
 mod tests {    
-    use simbin::{to_bytes, from_bytes};
+    use minbin::{to_bytes, from_bytes};
 
     #[test]
     fn test_struct() {

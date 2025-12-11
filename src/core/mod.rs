@@ -1,4 +1,4 @@
-//! Core functionality – always available, no allocation required.
+//! Core functionality, always included, no allocation required.
 //!
 //! Everything in this module works with `&[u8]` / `&mut [u8]` borrows only.
 //!

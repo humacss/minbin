@@ -22,8 +22,7 @@ impl ToFromBytes<'_> for u8 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(1) }
-
+    fn byte_count(&self) -> usize { 1 }
 }
 
 impl ToFromBytes<'_> for i8 {
@@ -43,7 +42,7 @@ impl ToFromBytes<'_> for i8 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(1) }
+    fn byte_count(&self) -> usize { 1 }
 }
 
 impl ToFromBytes<'_> for u16 {
@@ -63,7 +62,7 @@ impl ToFromBytes<'_> for u16 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(2) }
+    fn byte_count(&self) -> usize { 2 }
 }
 
 impl ToFromBytes<'_> for i16 {
@@ -83,7 +82,7 @@ impl ToFromBytes<'_> for i16 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(2) }
+    fn byte_count(&self) -> usize { 2 }
 }
 
 impl ToFromBytes<'_> for u32 {
@@ -103,7 +102,7 @@ impl ToFromBytes<'_> for u32 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(4) }
+    fn byte_count(&self) -> usize { 4 }
 }
 
 impl ToFromBytes<'_> for i32 {
@@ -123,7 +122,7 @@ impl ToFromBytes<'_> for i32 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(4) }
+    fn byte_count(&self) -> usize { 4 }
 }
 
 impl ToFromBytes<'_> for u64 {
@@ -143,7 +142,7 @@ impl ToFromBytes<'_> for u64 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(8) }
+    fn byte_count(&self) -> usize { 8 }
 }
 
 impl ToFromBytes<'_> for i64 {
@@ -163,7 +162,7 @@ impl ToFromBytes<'_> for i64 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(8) }
+    fn byte_count(&self) -> usize { 8 }
 }
 
 impl ToFromBytes<'_> for u128 {
@@ -183,7 +182,7 @@ impl ToFromBytes<'_> for u128 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(16) }
+    fn byte_count(&self) -> usize { 16 }
 }
 
 impl ToFromBytes<'_> for i128 {
@@ -203,7 +202,7 @@ impl ToFromBytes<'_> for i128 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(16) }
+    fn byte_count(&self) -> usize { 16 }
 }
 
 impl ToFromBytes<'_> for bool {
@@ -226,5 +225,5 @@ impl ToFromBytes<'_> for bool {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(1) }
+    fn byte_count(&self) -> usize { 1 }
 }

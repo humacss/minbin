@@ -42,18 +42,14 @@ where T: ToFromBytes<'a>
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> {
+    fn byte_count(&self) -> usize {
         let mut byte_count = 4;
 
         for item in self.iter() {
-            byte_count += item.byte_count()?;
-
-            if byte_count > Self::MAX_BYTES {
-                return Err(ToFromByteError::MaxBytesExceeded);
-            }
+            byte_count += item.byte_count();
         }
 
-        Ok(byte_count)
+        byte_count
     }
 }
 
@@ -84,13 +80,7 @@ impl<'a> ToFromBytes<'a> for String
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> {
-        let byte_count = 4 + self.len();
-
-        if byte_count > Self::MAX_BYTES {
-            return Err(ToFromByteError::MaxBytesExceeded);
-        }
-
-        Ok(byte_count)
+    fn byte_count(&self) -> usize {
+        4 + self.len()
     }
 }

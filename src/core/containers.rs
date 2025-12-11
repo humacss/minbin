@@ -36,27 +36,17 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> {
+    fn byte_count(&self) -> usize {
         match self.as_ref() {
-            Some(inner) => {
-                let byte_count = 1 + inner.byte_count()?;
-
-                if byte_count > Self::MAX_BYTES {
-                    return Err(ToFromByteError::MaxBytesExceeded);
-                }
-
-                Ok(byte_count)
-            }
-            None => {
-                Ok(1)
-            }
+            Some(inner) => 1 + inner.byte_count(),
+            None => 1
         }
     }
 }
 
 
 impl<'a> ToFromBytes<'a> for &'a str {
-    const MAX_BYTES: usize = 1_048_576; // 1 MiB
+    const MAX_BYTES: usize = 102_400; // 100 KiB
 
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
@@ -80,14 +70,8 @@ impl<'a> ToFromBytes<'a> for &'a str {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> Result<usize, ToFromByteError> {
-        let byte_count = 4 + self.len();
-
-        if byte_count > Self::MAX_BYTES {
-            return Err(ToFromByteError::MaxBytesExceeded);
-        }
-
-        Ok(byte_count)
+    fn byte_count(&self) -> usize {
+        4 + self.len()
     }
 }
 

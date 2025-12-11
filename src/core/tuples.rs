@@ -27,18 +27,9 @@ macro_rules! tuple_implementation {
             }
 
             #[inline(always)]
-            fn byte_count(&self) -> Result<usize, ToFromByteError> {
+            fn byte_count(&self) -> usize {
                 let ($($name,)+) = self;
-
-                let mut total = 0usize;
-                
-                $( total += $name.byte_count()?; )+
-
-                if total > Self::MAX_BYTES {
-                    return Err(ToFromByteError::MaxBytesExceeded);
-                }
-
-                Ok(total)
+                0 $(+ $name.byte_count())+
             }
         }
     };

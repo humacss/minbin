@@ -14,6 +14,26 @@
 //!
 //! Everything is deliberately simple and documented enough to read and debug at 3 a.m.
 //!
+//! # Size limits
+//!
+//! By default, all container types (`Option<T>`, `Vec<T>`, etc.) are limited to
+//! **1 MiB** (1,048,576 bytes) of total serialized data. 
+//! This is a safeguard against memory exhaustion in constrained environments.
+//!
+//! Strings (`String` and `&str`) are capped at **100 KiB** (102,400 bytes) instead.
+//! This is because deserializing a `String` requires a full UTF-8 validation pass,
+//! which is significantly more expensive than just copying raw bytes.
+//!
+//! On the worst-case input (all 4-byte UTF-8 characters), a 100 KiB string deserializes
+//! in roughly 50 µs on the same machine we used for benchmarking, keeping the worst case 
+//! reasonably fast and predictable.
+//!
+//! `minbin` is made for small, frequent packets. If you regularly send larger strings, you have several options:
+//! - Override the default `String`/`&str` implementations and skip UTF-8 validation if you trust the source.
+//! - Override them and validate incrementally or lazily instead of all at once.
+//! - Send raw bytes directly in your trait definition and handle validation manually.
+//! - Consider a more feature-rich crate with streaming support.
+//!
 //! ## How to Work With String and &str
 //!
 //! In general, you will want to work with `String` if you can. 
@@ -21,10 +41,10 @@
 //!
 //! If you have to work with `&str` for performance reasons or because you don't have `alloc`, 
 //! then you will need to also keep the bytes buffer in memory for as long as the `&str` is, 
-//! because the lifetimes are tied.
+//! because they use the same lifetime.
 //! 
 //! This is often fine because you can just keep both in scope until you finish processing. 
-//! However, sometimes you need to keep the `&str` for longer, in which case you have 2 options:
+//! However, sometimes you need to keep the `&str` for longer than just one processing step, in which case you have 2 options:
 //! - Keep the entire bytes buffer in memory for as long as you need the `&str`
 //! - Write the `&str` bytes to a smaller, dedicated, byte buffer and read the `&str` again from that buffer. 
 //!   Keep both in memory for as long as the `&str` is needed.

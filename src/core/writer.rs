@@ -32,6 +32,10 @@ impl<'a> BytesWriter<'a> {
     /// Write bytes from any type that implements `ToFromBytes`.
     #[inline(always)]
     pub fn write<T: ToFromBytes<'a>>(&mut self, value: &T) -> Result<(), ToFromByteError> {
+        if value.byte_count() > T::MAX_BYTES {
+            return Err(ToFromByteError::MaxBytesExceeded);
+        }
+
         value.to_bytes(self)
     }
 

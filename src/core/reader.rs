@@ -31,7 +31,13 @@ impl<'a> BytesReader<'a> {
     /// Use only when you don't need to know how many bytes were consumed.
     #[inline(always)]
     pub fn read<T: ToFromBytes<'a>>(&mut self) -> Result<T, ToFromByteError> {
+        let start_pos = self.pos;
+
         let (value, _pos) = T::from_bytes(self)?;
+
+        if self.pos - start_pos > T::MAX_BYTES {
+            return Err(ToFromByteError::MaxBytesExceeded);
+        }
 
         Ok(value)
     }

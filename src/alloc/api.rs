@@ -17,8 +17,12 @@ use crate::{ToFromBytes, ToFromByteError, write_bytes};
 pub fn to_bytes<T>(value: &T) -> Result<Vec<u8>, ToFromByteError>
 where T: for<'a> ToFromBytes<'a>
 {
-    let byte_count = value.byte_count()?;
-    
+    let byte_count = value.byte_count();
+
+    if byte_count > T::MAX_BYTES {
+        return Err(ToFromByteError::MaxBytesExceeded);
+    }
+
     let mut bytes = vec![0u8; byte_count];
 
     let writer_pos = write_bytes(value, &mut bytes)?;
