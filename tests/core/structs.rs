@@ -31,7 +31,10 @@ fn test_struct_stack() {
 
     let mut buffer = [0u8; 1024];
     let write_pos = write_bytes(&expected, &mut buffer).unwrap();
-    let (actual, read_pos): (ExampleStruct, usize) = read_bytes(&buffer[..write_pos]).unwrap();
+    
+    assert_eq!(expected.byte_count(),   write_pos);
+
+    let (actual, read_pos): (ExampleStruct, usize) = read_bytes(&buffer).unwrap();
 
     assert_eq!(expected.byte_count(),   read_pos);
     assert_eq!(expected.uuid,           actual.uuid);
@@ -46,7 +49,10 @@ fn test_struct_heap() {
 
     let mut buffer = vec![0u8; expected.byte_count()];
     let write_pos = write_bytes(&expected, &mut buffer).unwrap();
-    let (actual, read_pos): (ExampleStruct, usize) = read_bytes(&buffer[..write_pos]).unwrap();
+    
+    assert_eq!(expected.byte_count(),   write_pos);
+
+    let (actual, read_pos): (ExampleStruct, usize) = read_bytes(&buffer).unwrap();
 
     assert_eq!(expected.byte_count(),   read_pos);
     assert_eq!(expected.uuid,           actual.uuid);
