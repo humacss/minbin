@@ -1,5 +1,15 @@
 use crate::core::{ToFromBytes, ToFromByteError};
 
+/// Position-tracking writer over a `&mut [u8]`.
+///
+/// Why a writer struct instead of writing directly to the buffer?
+/// - Rust’s borrow rules make it painful to mutate a slice while keeping track of position safely.
+/// - Without a cursor you’d constantly pass around index + slice, risking off-by-one errors or lifetime fights.
+/// - The writer lets you borrow the buffer once and pass `&mut writer` around cleanly for nesting.
+/// - It’s still zero-cost (just a usize + reference) and gives early overflow errors instead of silent truncation.
+/// 
+/// Using borrows instead of owned `Vec<u8>` avoids cloning or moving data unnecessarily and works in `no-std`.
+/// The tiny abstraction pays for itself in ergonomics and safety while staying fully auditable.
 pub struct BytesWriter<'a> {
     pub data:  &'a mut [u8],
     pub pos:  usize,

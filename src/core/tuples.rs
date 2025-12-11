@@ -1,49 +1,48 @@
-use crate::{ToFromBytes, ToFromByteError, BytesReader, BytesWriter};
+use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
-// Get rid of the macro
-macro_rules! impl_tuple {
-    ($($T:ident),+) => {
+/// Didn't you say no macros in the README?
+/// Yes, but we are just delegating to the implementor here so a macro is fine. 
+/// There is nothing special going on, just us working around the fact that there is no tuple generic in Rust.
+/// Reading through 300 lines of boilerplate takes more effort than reading this macro.
+macro_rules! tuple_implementation {
+    ($($name:ident),+) => {
         #[allow(non_snake_case)]
-        impl<'de, $($T: ToFromBytes<'de>),+> ToFromBytes<'de> for ($($T,)+) {
+        impl<'a, $($name: ToFromBytes<'a>),+> ToFromBytes<'a> for ($($name,)+)
+        {
             #[inline(always)]
-            fn to_bytes(&self, writer: &mut BytesWriter<'de>) -> Result<(), ToFromByteError> {
-                let ($($T,)+) = self;
-                
-                $($T.to_bytes(writer)?;)+
-                
+            fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
+                let ($($name,)+) = self;
+                $($name.to_bytes(writer)?;)+
                 Ok(())
             }
 
             #[inline(always)]
-            fn from_bytes(reader: &mut BytesReader<'de>) -> Result<(Self, usize), ToFromByteError> {
-                let value = ($( {
-                    let item: $T = reader.read()?;
-
-                    item
-                }, )+);
-
-                Ok((value, reader.pos))
+            fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
+                Ok((
+                    ($(reader.read::<$name>()?,)+),
+                    reader.pos
+                ))
             }
 
             #[inline(always)]
             fn byte_count(&self) -> usize {
-                let ($($T,)+) = self;
-
-                0 $(+ $T.byte_count())+
+                let ($($name,)+) = self;
+                0 $(+ $name.byte_count())+
             }
         }
     };
 }
 
-impl_tuple!(A);
-impl_tuple!(A, B);
-impl_tuple!(A, B, C);
-impl_tuple!(A, B, C, D);
-impl_tuple!(A, B, C, D, E);
-impl_tuple!(A, B, C, D, E, F);
-impl_tuple!(A, B, C, D, E, F, G);
-impl_tuple!(A, B, C, D, E, F, G, H);
-impl_tuple!(A, B, C, D, E, F, G, H, I);
-impl_tuple!(A, B, C, D, E, F, G, H, I, J);
-impl_tuple!(A, B, C, D, E, F, G, H, I, J, K);
-impl_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
+tuple_implementation!(T0);
+tuple_implementation!(T0, T1);
+tuple_implementation!(T0, T1, T2);
+tuple_implementation!(T0, T1, T2, T3);
+tuple_implementation!(T0, T1, T2, T3, T4);
+tuple_implementation!(T0, T1, T2, T3, T4, T5);
+tuple_implementation!(T0, T1, T2, T3, T4, T5, T6);
+tuple_implementation!(T0, T1, T2, T3, T4, T5, T6, T7);
+tuple_implementation!(T0, T1, T2, T3, T4, T5, T6, T7, T8);
+tuple_implementation!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9);
+tuple_implementation!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10);
+tuple_implementation!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11);
+tuple_implementation!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12);

@@ -1,5 +1,13 @@
 use crate::{ToFromBytes, ToFromByteError};
 
+/// Position-tracking reader over a `&[u8]`.
+///
+/// Mirrors `BytesWriter` on the read side for the same reasons:
+/// - Tracks position explicitly so you don’t manually slice and index everywhere.
+/// - Enables clean nesting and composing of types without lifetime or ownership headaches.
+/// - Works with borrows only – no cloning, no allocation, perfect for `no-std`.
+/// 
+/// The reader + writer pair is the minimal safe way to get efficient, borrow-based serialization in Rust.
 pub struct BytesReader<'a> {
     pub data: &'a [u8],
     pub pos:  usize,

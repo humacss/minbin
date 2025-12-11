@@ -2,9 +2,14 @@ use super::{ToFromByteError};
 
 use crate::{BytesReader, BytesWriter};
 
-/// Trait for types that can be serialized to and deserialized from bytes.
+/// The heart of minbin: one trait you implement yourself.
 ///
-/// Implement this for your custom structs to enable serialization with `simbin`.
+/// Why manual?
+/// - You decide field order, padding, and versioning explicitly.
+/// - The wire format lives in your code, not in proc-macro output you can’t easily read or predict.
+/// - Changing the format never requires a crate upgrade or migration tooling.
+/// - Auditing or fixing the serialization is just reading your own ~20-line implementation.
+
 pub trait ToFromBytes<'a> {    
     /// Serializes the value into the provided writer.
     ///

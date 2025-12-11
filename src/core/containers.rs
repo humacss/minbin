@@ -64,7 +64,7 @@ impl<'a> ToFromBytes<'a> for &'a str {
 
     #[inline(always)]
     fn byte_count(&self) -> usize {
-        // overflow issues needs to be handled
+        // usize overflow issues needs to be handled
         4 + self.len()
     }
 }

@@ -1,4 +1,4 @@
-use minbin::{BytesWriter, BytesReader, ToFromBytes, ToFromByteError, write_bytes, read_bytes};
+use minbin::{BytesWriter, BytesReader, ToFromBytes, ToFromByteError, to_bytes, from_bytes};
 
 struct ExampleStruct {
     uuid: u128,
@@ -24,7 +24,8 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
     }
 
     fn byte_count(&self) -> usize {
-        (self.uuid, self.timestamp, self.name.clone(), self.readings.clone()).byte_count()
+        self.uuid.byte_count() + self.timestamp.byte_count() + 
+        self.name.byte_count() + self.readings.byte_count()
     }
 }
 
@@ -32,14 +33,11 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
 fn test_struct() {
     let expected = ExampleStruct{ uuid: 0, timestamp: 1, name: "example".to_string(), readings: vec![1, 2, 3, 4] };
 
-    let mut buffer = vec![0u8; expected.byte_count()];
-    let write_pos = write_bytes(&expected, &mut buffer).unwrap();
-    let (actual, read_pos): (ExampleStruct, usize) = read_bytes(&buffer[..write_pos]).unwrap();
+    let bytes = to_bytes(&expected).unwrap();
+    let actual: ExampleStruct = from_bytes(&bytes).unwrap();
 
-    assert_eq!(expected.byte_count(),   read_pos);
     assert_eq!(expected.uuid,           actual.uuid);
     assert_eq!(expected.timestamp,      actual.timestamp);
     assert_eq!(expected.name,           actual.name);
     assert_eq!(expected.readings,       actual.readings);
 }
-

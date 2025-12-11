@@ -1,3 +1,8 @@
+//! Core functionality – always available, no allocation required.
+//!
+//! Each module is kept separate so you can see exactly why it exists and jump straight to the code that matters.
+//! The design favors explicit borrows and small, composable pieces over convenience that would hide details.
+
 /// The public API intended for consumption
 pub mod api;
 /// ToFromBytes trait implementations for container types.
@@ -15,7 +20,7 @@ pub mod tuples;
 /// Used for traversing a byte slice for writing.
 pub mod writer;
 
-pub use api::{read_bytes, write_bytes};
+pub use api::{read_bytes, write_bytes, from_bytes};
 pub use error::{ToFromByteError};
 pub use to_from_bytes::{ToFromBytes};
 pub use reader::{BytesReader};
