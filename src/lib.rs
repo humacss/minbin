@@ -1,41 +1,26 @@
+//! **minbin**: Minimal, manual, big-endian binary serialization.
+//!
+//! Designed for cases where you control both sides and value auditability over maximum speed or minimum size.
+//! You implement one small trait by hand – no derives, no macros, no hidden layout rules.
+//! This gives you full ownership of the wire format while keeping the crate tiny (<300 LOC), zero-dependency, and `no-std`.
+//!
+//! The API is built around borrows (`&[u8]`, `&mut [u8]`) instead of owned buffers because:
+//! - It avoids unnecessary cloning or moving data you already own.
+//! - It works efficiently in `no-std` and embedded environments where allocation is expensive or impossible.
+//! - It keeps lifetimes explicit and safe without forcing `'static` or owned types everywhere.
+//!
+//! Everything is deliberately simple enough to read and debug at 3 a.m.
+
 #![no_std]
 #![forbid(unsafe_code)]
 //#![deny(missing_docs)]
 
-/// Contains all error states for the crate.
-pub mod error;
-/// The trait used for serialization, implement the trait for serialization support.
-pub mod bytes;
-/// ToFromBytes trait implementations for primitive types.
-pub mod primitives;
-/// ToFromBytes trait implementations for container types.
-pub mod containers;
-/// ToFromBytes trait implementations for tuples;
-pub mod tuples;
-/// Used for traversing a byte slice for reading and writing.
-pub mod cursors;
+// The core implementation, always included
+pub mod core;
+pub use core::{ToFromBytes, ToFromByteError, BytesReader, BytesWriter, read_bytes, write_bytes, from_bytes};
 
-pub use error::ToFromByteError;
-pub use bytes::{ToFromBytes};
-pub use cursors::{BytesReader, BytesWriter};
-
-#[inline]
-pub fn write_bytes<'a, T: ToFromBytes<'a>>(value: &T, buffer: &'a mut [u8]) -> Result<usize, ToFromByteError> {	
-	if buffer.len() < value.byte_count() {
-        return Err(ToFromByteError::NotEnoughBytes);
-    }
-
-	let mut writer = BytesWriter::new(buffer);
-	value.to_bytes(&mut writer)?;
-     
-    Ok(writer.pos)
-}
-
-#[inline]
-pub fn read_bytes<'a, T: ToFromBytes<'a>>(buffer: &'a [u8]) -> Result<(T, usize), ToFromByteError> {
-    let mut reader = BytesReader::new(buffer);
-
-    let value = reader.read()?;
-    
-    Ok((value, reader.pos))
-}
+// The core implementation, only with alloc feature
+#[cfg(feature = "alloc")]
+pub mod alloc;
+#[cfg(feature = "alloc")]
+pub use alloc::{to_bytes};

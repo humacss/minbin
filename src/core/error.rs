@@ -1,19 +1,25 @@
-//! Error types for serialization and deserialization operations.
 use core::fmt;
 
-/// Errors that can occur during serialization or deserialization with `simbin`.
+/// Single error type used throughout minbin.
+///
+/// Only two variants are needed for our model. Custom enum keeps us `no-std` and zero-size overhead compared to `std::io::Error`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ToFromByteError {
     /// The buffer or data slice does not have enough bytes for the operation.
     NotEnoughBytes,
+    /// The value was read successfully, but the buffer contained extra bytes afterward.
+    /// These bytes would be silently dropped if we returned Ok().
+    TrailingBytes,
     /// The deserialized value is invalid for the type (e.g., invalid bool, UTF-8).
     InvalidValue,
+    
 }
 
 impl fmt::Display for ToFromByteError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ToFromByteError::NotEnoughBytes => formatter.write_str("not enough bytes"),
+            ToFromByteError::TrailingBytes => formatter.write_str("trailing bytes"),
             ToFromByteError::InvalidValue => formatter.write_str("invalid value"),
         }
     }
