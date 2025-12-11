@@ -12,6 +12,9 @@ pub enum ToFromByteError {
     ///
     /// These bytes would be silently dropped if we returned Ok().
     TrailingBytes,
+    /// The value is too large, exceeding the `MAX_BYTES` setting on `ToFromBytes`.
+    /// This is a security setting intended to prevent out-of-memory attacks.
+    MaxBytesExceeded,
     /// The deserialized value is invalid for the type (e.g., invalid bool, UTF-8).
     InvalidValue,
     
@@ -23,6 +26,7 @@ impl fmt::Display for ToFromByteError {
             ToFromByteError::NotEnoughBytes => formatter.write_str("not enough bytes"),
             ToFromByteError::TrailingBytes => formatter.write_str("trailing bytes"),
             ToFromByteError::InvalidValue => formatter.write_str("invalid value"),
+            ToFromByteError::MaxBytesExceeded => formatter.write_str("max bytes exceeded"),
         }
     }
 }

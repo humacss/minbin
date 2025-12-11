@@ -8,7 +8,7 @@ where T: for<'a> ToFromBytes<'a>
 {
     let mut group = runner.benchmark_group(name);
 
-    let size = value.byte_count(); 
+    let size = value.byte_count().unwrap(); 
 
     group.bench_function(&format!("{}_serialize", name), |bencher| {
         bencher.iter_batched(
@@ -48,6 +48,8 @@ pub struct BenchStruct {
 }
 
 impl<'a> ToFromBytes<'a> for BenchStruct {
+    const MAX_BYTES: usize = 1_000_000;
+    
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         writer.write(&self.uuid)?;
         writer.write(&self.timestamp)?;
@@ -63,8 +65,15 @@ impl<'a> ToFromBytes<'a> for BenchStruct {
         Ok((BenchStruct { uuid, timestamp, name, readings }, reader.pos))
     }
 
-    fn byte_count(&self) -> usize {
-        self.uuid.byte_count() + self.timestamp.byte_count() + 
-        self.name.byte_count() + self.readings.byte_count()
+    fn byte_count(&self) -> Result<usize, ToFromByteError> {
+        let byte_count = self.uuid.byte_count()? + self.timestamp.byte_count()? + 
+        self.name.byte_count()? + self.readings.byte_count()?;
+
+        if byte_count > Self::MAX_BYTES {
+            return Err(ToFromByteError::MaxBytesExceeded);
+        }
+
+        Ok(byte_count)
     }
+
 }

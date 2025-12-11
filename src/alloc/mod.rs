@@ -1,4 +1,3 @@
-// src/alloc/mod.rs
 //! Only compiled when the `alloc` feature (enabled by default) is active.
 //!
 //! This module exists because a majority of applications run on platforms that can allocate.

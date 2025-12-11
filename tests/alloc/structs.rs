@@ -8,6 +8,8 @@ struct ExampleStruct {
 }
 
 impl<'a> ToFromBytes<'a> for ExampleStruct {
+    const MAX_BYTES: usize = 1_048_576; // 1 MiB
+    
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         writer.write(&self.uuid)?;
         writer.write(&self.timestamp)?;
@@ -23,9 +25,15 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
         Ok((ExampleStruct { uuid, timestamp, name, readings }, reader.pos))
     }
 
-    fn byte_count(&self) -> usize {
-        self.uuid.byte_count() + self.timestamp.byte_count() + 
-        self.name.byte_count() + self.readings.byte_count()
+    fn byte_count(&self) -> Result<usize, ToFromByteError> {
+        let byte_count = self.uuid.byte_count()? + self.timestamp.byte_count()? + 
+        self.name.byte_count()? + self.readings.byte_count()?;
+
+        if byte_count > Self::MAX_BYTES {
+            return Err(ToFromByteError::MaxBytesExceeded);
+        }
+
+        Ok(byte_count)
     }
 }
 

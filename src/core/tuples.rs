@@ -9,6 +9,8 @@ macro_rules! tuple_implementation {
         #[allow(non_snake_case)]
         impl<'a, $($name: ToFromBytes<'a>),+> ToFromBytes<'a> for ($($name,)+)
         {
+            const MAX_BYTES: usize = 1_048_576; // 1 MiB
+
             #[inline(always)]
             fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
                 let ($($name,)+) = self;
@@ -25,9 +27,18 @@ macro_rules! tuple_implementation {
             }
 
             #[inline(always)]
-            fn byte_count(&self) -> usize {
+            fn byte_count(&self) -> Result<usize, ToFromByteError> {
                 let ($($name,)+) = self;
-                0 $(+ $name.byte_count())+
+
+                let mut total = 0usize;
+                
+                $( total += $name.byte_count()?; )+
+
+                if total > Self::MAX_BYTES {
+                    return Err(ToFromByteError::MaxBytesExceeded);
+                }
+
+                Ok(total)
             }
         }
     };

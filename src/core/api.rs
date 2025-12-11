@@ -52,7 +52,7 @@ pub fn read_bytes<'a, T: ToFromBytes<'a>>(buffer: &'a [u8]) -> Result<(T, usize)
 pub fn write_bytes<'a, T: ToFromBytes<'a>>(value: &T, buffer: &'a mut [u8]) -> Result<usize, ToFromByteError> {	
     let buffer_len = buffer.len();
 
-	if buffer_len < value.byte_count() {
+	if buffer_len < value.byte_count()? {
         return Err(ToFromByteError::NotEnoughBytes);
     }
 

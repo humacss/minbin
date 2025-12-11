@@ -13,6 +13,8 @@ use crate::{ToFromBytes, ToFromByteError, BytesReader, BytesWriter};
 impl<'a, T> ToFromBytes<'a> for Vec<T>
 where T: ToFromBytes<'a>
 {
+    const MAX_BYTES: usize = 1_048_576; // 1 MiB
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         let len = u32::try_from(self.len()).map_err(|_| ToFromByteError::InvalidValue)?;
@@ -40,14 +42,26 @@ where T: ToFromBytes<'a>
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize {
-        4 + self.iter().map(T::byte_count).sum::<usize>()
+    fn byte_count(&self) -> Result<usize, ToFromByteError> {
+        let mut byte_count = 4;
+
+        for item in self.iter() {
+            byte_count += item.byte_count()?;
+
+            if byte_count > Self::MAX_BYTES {
+                return Err(ToFromByteError::MaxBytesExceeded);
+            }
+        }
+
+        Ok(byte_count)
     }
 }
 
 
 impl<'a> ToFromBytes<'a> for String
 {
+    const MAX_BYTES: usize = 1_048_576; // 1 MiB
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         let len = u32::try_from(self.len()).map_err(|_| ToFromByteError::InvalidValue)?;
@@ -70,7 +84,13 @@ impl<'a> ToFromBytes<'a> for String
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize {
-        4 + self.len()
+    fn byte_count(&self) -> Result<usize, ToFromByteError> {
+        let byte_count = 4 + self.len();
+
+        if byte_count > Self::MAX_BYTES {
+            return Err(ToFromByteError::MaxBytesExceeded);
+        }
+
+        Ok(byte_count)
     }
 }

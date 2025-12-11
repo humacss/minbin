@@ -6,6 +6,8 @@
 use crate::{ToFromBytes, ToFromByteError, BytesWriter, BytesReader};
 
 impl ToFromBytes<'_> for u8 {
+    const MAX_BYTES: usize = 1;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&self.to_be_bytes())
@@ -20,10 +22,13 @@ impl ToFromBytes<'_> for u8 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize { 1 }
+    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(1) }
+
 }
 
 impl ToFromBytes<'_> for i8 {
+    const MAX_BYTES: usize = 1;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&(*self as u8).to_be_bytes())
@@ -38,10 +43,12 @@ impl ToFromBytes<'_> for i8 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize { 1 }
+    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(1) }
 }
 
 impl ToFromBytes<'_> for u16 {
+    const MAX_BYTES: usize = 2;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&self.to_be_bytes())
@@ -56,10 +63,12 @@ impl ToFromBytes<'_> for u16 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize { 2 }
+    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(2) }
 }
 
 impl ToFromBytes<'_> for i16 {
+    const MAX_BYTES: usize = 2;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&(*self as u16).to_be_bytes())
@@ -74,10 +83,12 @@ impl ToFromBytes<'_> for i16 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize { 2 }
+    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(2) }
 }
 
 impl ToFromBytes<'_> for u32 {
+    const MAX_BYTES: usize = 4;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&self.to_be_bytes())
@@ -92,10 +103,12 @@ impl ToFromBytes<'_> for u32 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize { 4 }
+    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(4) }
 }
 
 impl ToFromBytes<'_> for i32 {
+    const MAX_BYTES: usize = 4;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&(*self as u32).to_be_bytes())
@@ -110,10 +123,12 @@ impl ToFromBytes<'_> for i32 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize { 4 }
+    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(4) }
 }
 
 impl ToFromBytes<'_> for u64 {
+    const MAX_BYTES: usize = 8;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&self.to_be_bytes())
@@ -128,10 +143,12 @@ impl ToFromBytes<'_> for u64 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize { 8 }
+    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(8) }
 }
 
 impl ToFromBytes<'_> for i64 {
+    const MAX_BYTES: usize = 8;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&(*self as u64).to_be_bytes())
@@ -146,10 +163,12 @@ impl ToFromBytes<'_> for i64 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize { 8 }
+    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(8) }
 }
 
 impl ToFromBytes<'_> for u128 {
+    const MAX_BYTES: usize = 16;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&self.to_be_bytes())
@@ -164,10 +183,12 @@ impl ToFromBytes<'_> for u128 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize { 16 }
+    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(16) }
 }
 
 impl ToFromBytes<'_> for i128 {
+    const MAX_BYTES: usize = 16;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&(*self as u128).to_be_bytes())
@@ -182,10 +203,12 @@ impl ToFromBytes<'_> for i128 {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize { 16 }
+    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(16) }
 }
 
 impl ToFromBytes<'_> for bool {
+    const MAX_BYTES: usize = 1;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&[if *self { 1 } else { 0 }])
@@ -203,5 +226,5 @@ impl ToFromBytes<'_> for bool {
     }
 
     #[inline(always)]
-    fn byte_count(&self) -> usize { 1 }
+    fn byte_count(&self) -> Result<usize, ToFromByteError> { Ok(1) }
 }

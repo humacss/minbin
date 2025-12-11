@@ -8,9 +8,6 @@
 use crate::{ToFromBytes, ToFromByteError};
 
 /// Reads from an immutable byte slice.
-///
-/// Zero-cost abstraction that prevents index-out-of-bounds and lifetime bugs.
-/// Used everywhere in real-world minbin code.
 pub struct BytesReader<'a> {
     /// The underlying buffer we're reading from.
     pub data: &'a [u8],
