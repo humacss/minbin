@@ -41,9 +41,9 @@ where T: for<'a> ToFromBytes<'a>
 
 
 pub struct BenchStruct {
-    pub uuid: u128, // 16 bytes
-    pub timestamp: i64, // 8 bytes
-    pub name: String, 
+    pub uuid: u128, 
+    pub timestamp: i64,
+    pub name: String,
     pub readings: Vec<u32>, 
 }
 
