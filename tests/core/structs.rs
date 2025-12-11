@@ -36,7 +36,7 @@ fn test_struct_stack() {
     
     assert_eq!(expected.byte_count(),   write_pos);
 
-    let (actual, read_pos): (ExampleStruct, usize) = read_bytes(&buffer[..write_pos]).unwrap();
+    let (actual, read_pos): (ExampleStruct, usize) = read_bytes(&buffer).unwrap();
 
     assert_eq!(expected.byte_count(),   read_pos);
     assert_eq!(expected.uuid,           actual.uuid);
