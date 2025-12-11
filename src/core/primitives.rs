@@ -1,11 +1,13 @@
 //! Implementations for fixed-width primitives and `bool`.
 //!
 //! All integers are serialized in big-endian byte order using `to_be_bytes`/`from_be_bytes`.
-//! Fixed-width types ensure the size is always known at compile time – no surprises.
+//! Fixed-width types ensure the size is always known at compile time, meaning less errors for us to deal with.
 
 use crate::{ToFromBytes, ToFromByteError, BytesWriter, BytesReader};
 
 impl ToFromBytes<'_> for u8 {
+    const MAX_BYTES: usize = 1;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&self.to_be_bytes())
@@ -24,6 +26,8 @@ impl ToFromBytes<'_> for u8 {
 }
 
 impl ToFromBytes<'_> for i8 {
+    const MAX_BYTES: usize = 1;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&(*self as u8).to_be_bytes())
@@ -42,6 +46,8 @@ impl ToFromBytes<'_> for i8 {
 }
 
 impl ToFromBytes<'_> for u16 {
+    const MAX_BYTES: usize = 2;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&self.to_be_bytes())
@@ -60,6 +66,8 @@ impl ToFromBytes<'_> for u16 {
 }
 
 impl ToFromBytes<'_> for i16 {
+    const MAX_BYTES: usize = 2;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&(*self as u16).to_be_bytes())
@@ -78,6 +86,8 @@ impl ToFromBytes<'_> for i16 {
 }
 
 impl ToFromBytes<'_> for u32 {
+    const MAX_BYTES: usize = 4;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&self.to_be_bytes())
@@ -96,6 +106,8 @@ impl ToFromBytes<'_> for u32 {
 }
 
 impl ToFromBytes<'_> for i32 {
+    const MAX_BYTES: usize = 4;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&(*self as u32).to_be_bytes())
@@ -114,6 +126,8 @@ impl ToFromBytes<'_> for i32 {
 }
 
 impl ToFromBytes<'_> for u64 {
+    const MAX_BYTES: usize = 8;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&self.to_be_bytes())
@@ -132,6 +146,8 @@ impl ToFromBytes<'_> for u64 {
 }
 
 impl ToFromBytes<'_> for i64 {
+    const MAX_BYTES: usize = 8;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&(*self as u64).to_be_bytes())
@@ -150,6 +166,8 @@ impl ToFromBytes<'_> for i64 {
 }
 
 impl ToFromBytes<'_> for u128 {
+    const MAX_BYTES: usize = 16;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&self.to_be_bytes())
@@ -168,6 +186,8 @@ impl ToFromBytes<'_> for u128 {
 }
 
 impl ToFromBytes<'_> for i128 {
+    const MAX_BYTES: usize = 16;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&(*self as u128).to_be_bytes())
@@ -186,6 +206,8 @@ impl ToFromBytes<'_> for i128 {
 }
 
 impl ToFromBytes<'_> for bool {
+    const MAX_BYTES: usize = 1;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         writer.write_bytes(&[if *self { 1 } else { 0 }])

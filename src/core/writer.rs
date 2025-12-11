@@ -1,38 +1,49 @@
-use crate::core::{ToFromBytes, ToFromByteError};
+//! Position-tracking writer over a `&mut [u8]`.
+//!
+//! Why not just pass `&mut [u8]` and an index everywhere?
+//!
+//! Because manually slicing and passing indices leads to off-by-one bugs and lifetime hell.
+//! This wrapper simplifies working with the Rust compiler and introduces zero overhead.
+//!
+//! All writes return early on overflow instead of silently truncating. 
+//! Which should prevent otherwise common surprises in production.
 
-/// Position-tracking writer over a `&mut [u8]`.
+use crate::{ToFromBytes, ToFromByteError};
+
+/// Writes into a mutable byte slice.
 ///
-/// Why a writer struct instead of writing directly to the buffer?
-/// - Rust’s borrow rules make it painful to mutate a slice while keeping track of position safely.
-/// - Without a cursor you’d constantly pass around index + slice, risking off-by-one errors or lifetime fights.
-/// - The writer lets you borrow the buffer once and pass `&mut writer` around cleanly for nesting.
-/// - It’s still zero-cost (just a usize + reference) and gives early overflow errors instead of silent truncation.
-/// 
-/// Using borrows instead of owned `Vec<u8>` avoids cloning or moving data unnecessarily and works in `no-std`.
-/// The tiny abstraction pays for itself in ergonomics and safety while staying fully auditable.
+/// The buffer is borrowed for `'a` — no copies, no allocation, works in `no_std`.
 pub struct BytesWriter<'a> {
+    /// The underlying buffer we're writing into. Borrowed, never reallocated.
     pub data:  &'a mut [u8],
+    /// Current write position. Always ≤ data.len().
     pub pos:  usize,
 }
 
 impl<'a> BytesWriter<'a> {
-    #[inline(always)]
-    pub fn write<T: ToFromBytes<'a>>(&mut self, value: &T) -> Result<(), ToFromByteError> {
-        value.to_bytes(self)
-    }
-
+    /// Create a new writer starting at position 0.
     #[inline(always)]
     pub const fn new(data: &'a mut [u8]) -> Self {
         Self { data, pos: 0 }
     }
 
-	#[inline(always)]
-    fn assert_enough_bytes(&self, byte_count: usize) -> Result<(), ToFromByteError> {
-        if self.pos + byte_count > self.data.len() { return Err(ToFromByteError::NotEnoughBytes); }
+    /// Convenience function.
+    ///
+    /// Write bytes from any type that implements `ToFromBytes`.
+    #[inline(always)]
+    pub fn write<T: ToFromBytes<'a>>(&mut self, value: &T) -> Result<(), ToFromByteError> {
+        if value.byte_count() > T::MAX_BYTES {
+            return Err(ToFromByteError::MaxBytesExceeded);
+        }
 
-        Ok(())
+        value.to_bytes(self)
     }
 
+    /// Write raw bytes. Used by primitives and length-prefixed containers.
+    ///
+    /// Performs a single bounds check, then `copy_from_slice`.
+    ///
+    /// Used by all base implementations.
     #[inline(always)]
     pub fn write_bytes(&mut self, src: &[u8]) -> Result<(), ToFromByteError> {
     	let byte_count = src.len();
@@ -45,4 +56,12 @@ impl<'a> BytesWriter<'a> {
         
         Ok(())
     }
+
+    #[inline(always)]
+    fn assert_enough_bytes(&self, byte_count: usize) -> Result<(), ToFromByteError> {
+        if self.pos + byte_count > self.data.len() { return Err(ToFromByteError::NotEnoughBytes); }
+
+        Ok(())
+    }
+
 }

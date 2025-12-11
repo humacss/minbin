@@ -48,6 +48,8 @@ pub struct BenchStruct {
 }
 
 impl<'a> ToFromBytes<'a> for BenchStruct {
+    const MAX_BYTES: usize = 1_048_576;
+    
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         writer.write(&self.uuid)?;
         writer.write(&self.timestamp)?;
@@ -67,4 +69,5 @@ impl<'a> ToFromBytes<'a> for BenchStruct {
         self.uuid.byte_count() + self.timestamp.byte_count() + 
         self.name.byte_count() + self.readings.byte_count()
     }
+
 }

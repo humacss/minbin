@@ -1,6 +1,8 @@
 use crate::{ToFromBytes, ToFromByteError, BytesReader, BytesWriter};
 
 impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
+    const MAX_BYTES: usize = 1 + T::MAX_BYTES;
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         match self {
@@ -35,12 +37,17 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
 
     #[inline(always)]
     fn byte_count(&self) -> usize {
-        // or is hit if the option is None
-        1 + self.as_ref().map_or(0, T::byte_count)
+        match self.as_ref() {
+            Some(inner) => 1 + inner.byte_count(),
+            None => 1
+        }
     }
 }
 
+
 impl<'a> ToFromBytes<'a> for &'a str {
+    const MAX_BYTES: usize = 102_400; // 100 KiB
+
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         let len = u32::try_from(self.len()).map_err(|_| ToFromByteError::InvalidValue)?;
@@ -64,7 +71,6 @@ impl<'a> ToFromBytes<'a> for &'a str {
 
     #[inline(always)]
     fn byte_count(&self) -> usize {
-        // usize overflow issues needs to be handled
         4 + self.len()
     }
 }

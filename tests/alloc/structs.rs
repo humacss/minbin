@@ -8,6 +8,8 @@ struct ExampleStruct {
 }
 
 impl<'a> ToFromBytes<'a> for ExampleStruct {
+    const MAX_BYTES: usize = 1_048_576;
+
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         writer.write(&self.uuid)?;
         writer.write(&self.timestamp)?;

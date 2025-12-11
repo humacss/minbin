@@ -9,6 +9,8 @@ macro_rules! tuple_implementation {
         #[allow(non_snake_case)]
         impl<'a, $($name: ToFromBytes<'a>),+> ToFromBytes<'a> for ($($name,)+)
         {
+            const MAX_BYTES: usize = 1_048_576; // 1 MiB
+
             #[inline(always)]
             fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
                 let ($($name,)+) = self;
