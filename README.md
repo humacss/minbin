@@ -129,17 +129,18 @@ If you can write Rust, you can use and debug `minbin`.
 ### Performance in practice 
 These are my results when running the benches with Criterion on an Apple M3 Pro using Rust 1.90.0.
 
-| Type                                       | Serialize          | Deserialize        |
-|--------------------------------------------|--------------------|--------------------|
-| `u8-128`, `bool`                           | ~2.5 ns            | ~7.2 ns            |
-| 100B `&str`                                | ~5.5 ns            | ~66 ns             |
-| 78B struct (50B string + primitives).      | ~7 ns              | ~40 ns             |
-
-*Deserialization of &str includes UTF-8 validation. A 100-byte string therefore costs ~66 ns.*
+| Type                                             | Serialize | Deserialize |
+|--------------------------------------------------|-----------|-------------|
+| `u8-128`, `i8-i128`, `bool`                      | ~8 ns     | ~8 ns       |
+| 100B Vec<u32>                                    | ~24 ns    | ~38 ns      |
+| 100B `String`     (1 byte chars)                 | ~13 ns    | ~30 ns      |
+| 100B `String`     (4 byte chars)                 | ~17 ns    | ~77 ns      |
+| 200B struct       (includes 100B, 4 char string) | ~37 ns    | ~115 ns     |
+*Deserialization of String includes UTF-8 validation.*
 
 Real-world takeaway:
-- Serializing a 78 byte game packet: **~143 million times / second**
-- Deserializing the same packet: **~25 million times / second**
+- Serializing a 200 byte game packet: **~27 million times / second**
+- Deserializing the same packet: **~8.7 million times / second**
 
 That's on one core. This should be faster than your other bottlenecks.
 
