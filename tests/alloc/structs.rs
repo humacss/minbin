@@ -26,8 +26,7 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
     }
 
     fn byte_count(&self) -> usize {
-        self.uuid.byte_count() + self.timestamp.byte_count() + 
-        self.name.byte_count() + self.readings.byte_count()
+        self.uuid.byte_count() + self.timestamp.byte_count() + self.name.byte_count() + self.readings.byte_count()
     }
 }
 
