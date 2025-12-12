@@ -2,7 +2,6 @@ use core::fmt;
 
 /// Single error type used throughout minbin.
 ///
-/// Only three variants are needed for our model. 
 /// Custom enum keeps us `no-std` and zero-size overhead compared to `std::io::Error`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ToFromByteError {
@@ -14,7 +13,7 @@ pub enum ToFromByteError {
     TrailingBytes,
     /// The value is too large, exceeding the `MAX_BYTES` setting on `ToFromBytes`.
     ///
-    /// This is a security setting intended to prevent out-of-memory attacks.
+    /// This is a security setting intended to prevent denial of service attacks.
     MaxBytesExceeded,
     /// The deserialized value is invalid for the type (e.g., invalid bool, invalid UTF-8).
     InvalidValue,
