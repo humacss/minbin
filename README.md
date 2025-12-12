@@ -1,7 +1,7 @@
-# minbin
-
 [![Crates.io](https://img.shields.io/crates/v/minbin.svg)](https://crates.io/crates/minbin)
 [![Docs](https://docs.rs/minbin/badge.svg)](https://docs.rs/minbin)
+
+# minbin
 
 Just use this one.
 
