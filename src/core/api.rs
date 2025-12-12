@@ -1,4 +1,4 @@
-use crate::{BytesWriter, BytesReader, ToFromBytes, ToFromByteError};
+use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
 /// Convenience function.
 ///
@@ -10,7 +10,8 @@ use crate::{BytesWriter, BytesReader, ToFromBytes, ToFromByteError};
 /// Use this when you expect exactly one message per buffer (most common case).
 #[inline]
 pub fn from_bytes<T>(bytes: &[u8]) -> Result<T, ToFromByteError>
-where T: for<'a> ToFromBytes<'a>
+where
+    T: for<'a> ToFromBytes<'a>,
 {
     if bytes.len() > T::MAX_BYTES {
         return Err(ToFromByteError::MaxBytesExceeded);
@@ -44,7 +45,7 @@ pub fn read_bytes<'a, T: ToFromBytes<'a>>(buffer: &'a [u8]) -> Result<(T, usize)
     if reader.pos > T::MAX_BYTES {
         return Err(ToFromByteError::MaxBytesExceeded);
     }
-    
+
     Ok((value, reader.pos))
 }
 
@@ -52,16 +53,19 @@ pub fn read_bytes<'a, T: ToFromBytes<'a>>(buffer: &'a [u8]) -> Result<(T, usize)
 ///
 /// Returns the number of bytes written on success.
 ///
-/// Fails early with `NotEnoughBytes` if the buffer is too small. 
-/// This is checked using `value.byte_count()` before touching the buffer, 
+/// Fails early with `NotEnoughBytes` if the buffer is too small.
+/// This is checked using `value.byte_count()` before touching the buffer,
 /// so you get predictable errors instead of silent truncation or panics.
 ///
 /// Preferred over `to_bytes` (the alloc version) in hot paths and no-std code.
 #[inline]
-pub fn write_bytes<'a, T: ToFromBytes<'a>>(value: &T, buffer: &'a mut [u8]) -> Result<usize, ToFromByteError> {	
+pub fn write_bytes<'a, T: ToFromBytes<'a>>(
+    value: &T,
+    buffer: &'a mut [u8],
+) -> Result<usize, ToFromByteError> {
     let buffer_len = buffer.len();
 
-	if buffer_len < value.byte_count() {
+    if buffer_len < value.byte_count() {
         return Err(ToFromByteError::NotEnoughBytes);
     }
 
@@ -69,8 +73,8 @@ pub fn write_bytes<'a, T: ToFromBytes<'a>>(value: &T, buffer: &'a mut [u8]) -> R
         return Err(ToFromByteError::MaxBytesExceeded);
     }
 
-	let mut writer = BytesWriter::new(buffer);
-	value.to_bytes(&mut writer)?;
-     
+    let mut writer = BytesWriter::new(buffer);
+    value.to_bytes(&mut writer)?;
+
     Ok(writer.pos)
 }

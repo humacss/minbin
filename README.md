@@ -1,4 +1,8 @@
+[![Crates.io](https://img.shields.io/crates/v/minbin.svg)](https://crates.io/crates/minbin)
+[![Docs](https://docs.rs/minbin/badge.svg)](https://docs.rs/minbin)
+
 # minbin
+
 Just use this one.
 
 When you control both sides, they’re using Rust, and you just want your struct as bytes without thinking too hard.
@@ -28,6 +32,8 @@ struct ExampleStruct {
 }
 
 impl<'a> ToFromBytes<'a> for ExampleStruct {
+    const MAX_BYTES: usize = 1_048_576;
+
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         writer.write(&self.uuid)?;
         writer.write(&self.timestamp)?;
@@ -44,8 +50,7 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
     }
 
     fn byte_count(&self) -> usize {
-        self.uuid.byte_count() + self.timestamp.byte_count() + 
-        self.name.byte_count() + self.readings.byte_count()
+        self.uuid.byte_count() + self.timestamp.byte_count() + self.name.byte_count() + self.readings.byte_count()
     }
 }
 ```
@@ -53,6 +58,8 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
 ```rust
 #[cfg(test)]
 mod tests {    
+    use super::*;
+
     use minbin::{to_bytes, from_bytes};
 
     #[test]

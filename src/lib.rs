@@ -17,7 +17,7 @@
 //! # Size limits
 //!
 //! By default, all container types (`Option<T>`, `Vec<T>`, etc.) are limited to
-//! **1 MiB** (1,048,576 bytes) of total serialized data. 
+//! **1 MiB** (1,048,576 bytes) of total serialized data.
 //! This is a safeguard against memory exhaustion in constrained environments.
 //!
 //! Strings (`String` and `&str`) are capped at **100 KiB** (102,400 bytes) instead.
@@ -25,7 +25,7 @@
 //! which is significantly more expensive than just copying raw bytes.
 //!
 //! On the worst-case input (all 4-byte UTF-8 characters), a 100 KiB string deserializes
-//! in roughly 50 µs on the same machine we used for benchmarking, keeping the worst case 
+//! in roughly 50 µs on the same machine we used for benchmarking, keeping the worst case
 //! reasonably fast and predictable.
 //!
 //! `minbin` is made for small, frequent packets. If you regularly send larger strings, you have several options:
@@ -36,20 +36,20 @@
 //!
 //! ## How to Work With String and &str
 //!
-//! In general, you will want to work with `String` if you can. 
+//! In general, you will want to work with `String` if you can.
 //! `String` is slightly less performant but simplifies the API a **lot**.
 //!
-//! If you have to work with `&str` for performance reasons or because you don't have `alloc`, 
-//! then you will need to also keep the bytes buffer in memory for as long as the `&str` is, 
+//! If you have to work with `&str` for performance reasons or because you don't have `alloc`,
+//! then you will need to also keep the bytes buffer in memory for as long as the `&str` is,
 //! because they use the same lifetime.
-//! 
-//! This is often fine because you can just keep both in scope until you finish processing. 
+//!
+//! This is often fine because you can just keep both in scope until you finish processing.
 //! However, sometimes you need to keep the `&str` for longer than just one processing step, in which case you have 2 options:
 //! - Keep the entire bytes buffer in memory for as long as you need the `&str`
-//! - Write the `&str` bytes to a smaller, dedicated, byte buffer and read the `&str` again from that buffer. 
+//! - Write the `&str` bytes to a smaller, dedicated, byte buffer and read the `&str` again from that buffer.
 //!   Keep both in memory for as long as the `&str` is needed.
 //!
-//! The borrow checker guarantees safety: you cannot use the `&str` after the buffer is dropped. 
+//! The borrow checker guarantees safety: you cannot use the `&str` after the buffer is dropped.
 //! If you try, the code simply won’t compile.
 
 #![no_std]
@@ -58,10 +58,12 @@
 
 // The core implementation, always included
 pub mod core;
-pub use core::{ToFromBytes, ToFromByteError, BytesReader, BytesWriter, read_bytes, write_bytes, from_bytes};
+pub use core::{
+    from_bytes, read_bytes, write_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes,
+};
 
 // Implementations requiring the alloc crate.
 #[cfg(feature = "alloc")]
 pub mod alloc;
 #[cfg(feature = "alloc")]
-pub use alloc::{to_bytes};
+pub use alloc::to_bytes;

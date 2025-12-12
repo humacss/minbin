@@ -5,14 +5,14 @@
 //! Because manually slicing and passing indices leads to off-by-one bugs and lifetime hell.
 //! This wrapper simplifies working with the Rust compiler and introduces zero overhead.
 
-use crate::{ToFromBytes, ToFromByteError};
+use crate::{ToFromByteError, ToFromBytes};
 
 /// Reads from an immutable byte slice.
 pub struct BytesReader<'a> {
     /// The underlying buffer we're reading from.
     pub data: &'a [u8],
     /// Current read position. Always ≤ data.len().
-    pub pos:  usize,
+    pub pos: usize,
 }
 
 impl<'a> BytesReader<'a> {
@@ -52,7 +52,7 @@ impl<'a> BytesReader<'a> {
     pub fn read_bytes(&mut self, byte_count: usize) -> Result<&'a [u8], ToFromByteError> {
         self.assert_enough_bytes(byte_count)?;
 
-        let slice = &self.data[self.pos..self.pos+byte_count];
+        let slice = &self.data[self.pos..self.pos + byte_count];
 
         self.pos += byte_count;
 
@@ -61,7 +61,9 @@ impl<'a> BytesReader<'a> {
 
     #[inline(always)]
     fn assert_enough_bytes(&self, byte_count: usize) -> Result<(), ToFromByteError> {
-        if self.pos + byte_count > self.data.len() { return Err(ToFromByteError::NotEnoughBytes); }
+        if self.pos + byte_count > self.data.len() {
+            return Err(ToFromByteError::NotEnoughBytes);
+        }
 
         Ok(())
     }

@@ -2,7 +2,7 @@
 //!
 //! Everything in this module works with `&[u8]` / `&mut [u8]` borrows only.
 //!
-//! Why? Because owning a `Vec<u8>` for every packet is inefficient and `no-std` 
+//! Why? Because owning a `Vec<u8>` for every packet is inefficient and `no-std`
 //! environments often can’t allocate at all.
 //!
 //! By forcing borrows we get zero-cost, zero-allocation, and explicit lifetimes.
@@ -25,8 +25,8 @@ pub mod tuples;
 /// Used for traversing a byte slice for writing.
 pub mod writer;
 
-pub use api::{read_bytes, write_bytes, from_bytes};
-pub use error::{ToFromByteError};
-pub use to_from_bytes::{ToFromBytes};
-pub use reader::{BytesReader};
-pub use writer::{BytesWriter};
+pub use api::{from_bytes, read_bytes, write_bytes};
+pub use error::ToFromByteError;
+pub use reader::BytesReader;
+pub use to_from_bytes::ToFromBytes;
+pub use writer::BytesWriter;

@@ -1,4 +1,4 @@
-use super::{ToFromByteError};
+use super::ToFromByteError;
 
 use crate::{BytesReader, BytesWriter};
 
@@ -33,12 +33,12 @@ pub trait ToFromBytes<'a> {
     /// the final size over the edge.
     ///
     /// Examples:
-    /// - A `String` with `MAX_BYTES = usize::MAX`. `byte_count()` can return 
+    /// - A `String` with `MAX_BYTES = usize::MAX`. `byte_count()` can return
     ///   `4 + usize::MAX` leading to overflow.
     /// - A deeply nested `Vec<Vec<...>>` with `MAX_BYTES = usize::MAX`, same problem but nested.
     ///
-    /// The default 1 MiB limit is safe on all systems 32-bit and above, since it is enforced on 
-    /// the top level. If you raise `MAX_BYTES` significantly, just keep the total serialized size 
+    /// The default 1 MiB limit is safe on all systems 32-bit and above, since it is enforced on
+    /// the top level. If you raise `MAX_BYTES` significantly, just keep the total serialized size
     /// comfortably below `usize::MAX` and you’ll be fine.
     const MAX_BYTES: usize;
 
@@ -50,7 +50,9 @@ pub trait ToFromBytes<'a> {
     /// Deserializes the value from the reader, returning the deserialized value and final reader position.
     ///
     /// Returns an error on invalid data or insufficient bytes.
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> where Self: Sized;
+    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError>
+    where
+        Self: Sized;
 
     /// Returns the exact number of bytes this value will occupy when serialized.
     ///

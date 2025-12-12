@@ -1,7 +1,7 @@
 use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
 /// Didn't you say no macros in the README?
-/// Yes, but we are just delegating to the implementor here so a macro is fine. 
+/// Yes, but we are just delegating to the implementor here so a macro is fine.
 /// There is nothing special going on, just us working around the fact that there is no tuple generic in Rust.
 /// Reading through 300 lines of boilerplate takes more effort than reading this macro.
 macro_rules! tuple_implementation {

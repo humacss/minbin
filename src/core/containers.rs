@@ -1,4 +1,4 @@
-use crate::{ToFromBytes, ToFromByteError, BytesReader, BytesWriter};
+use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
 impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
     const MAX_BYTES: usize = 1 + T::MAX_BYTES;
@@ -10,7 +10,7 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
                 writer.write(&0u8)?;
 
                 Ok(())
-            },
+            }
             Option::Some(value) => {
                 writer.write(&1u8)?;
                 writer.write(value)?;
@@ -28,7 +28,7 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
             0 => Ok((None, reader.pos)),
             1 => {
                 let value = reader.read()?;
-                
+
                 Ok((Some(value), reader.pos))
             }
             _ => Err(ToFromByteError::InvalidValue),
@@ -39,11 +39,10 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
     fn byte_count(&self) -> usize {
         match self.as_ref() {
             Some(inner) => 1 + inner.byte_count(),
-            None => 1
+            None => 1,
         }
     }
 }
-
 
 impl<'a> ToFromBytes<'a> for &'a str {
     const MAX_BYTES: usize = 102_400; // 100 KiB
@@ -51,7 +50,7 @@ impl<'a> ToFromBytes<'a> for &'a str {
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'_>) -> Result<(), ToFromByteError> {
         let len = u32::try_from(self.len()).map_err(|_| ToFromByteError::InvalidValue)?;
-        
+
         writer.write(&len)?;
         writer.write_bytes(self.as_bytes())?;
 
@@ -74,6 +73,3 @@ impl<'a> ToFromBytes<'a> for &'a str {
         4 + self.len()
     }
 }
-
-
-
