@@ -1,4 +1,8 @@
 # minbin
+
+[![Crates.io](https://img.shields.io/crates/v/minbin.svg)](https://crates.io/crates/minbin)
+[![Docs](https://docs.rs/minbin/badge.svg)](https://docs.rs/minbin)
+
 Just use this one.
 
 When you control both sides, they’re using Rust, and you just want your struct as bytes without thinking too hard.
