@@ -58,6 +58,8 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
 ```rust
 #[cfg(test)]
 mod tests {    
+    use super::*;
+
     use minbin::{to_bytes, from_bytes};
 
     #[test]
