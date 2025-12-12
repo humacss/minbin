@@ -5,19 +5,19 @@
 //! Because manually slicing and passing indices leads to off-by-one bugs and lifetime hell.
 //! This wrapper simplifies working with the Rust compiler and introduces zero overhead.
 //!
-//! All writes return early on overflow instead of silently truncating. 
+//! All writes return early on overflow instead of silently truncating.
 //! Which should prevent otherwise common surprises in production.
 
-use crate::{ToFromBytes, ToFromByteError};
+use crate::{ToFromByteError, ToFromBytes};
 
 /// Writes into a mutable byte slice.
 ///
 /// The buffer is borrowed for `'a` — no copies, no allocation, works in `no_std`.
 pub struct BytesWriter<'a> {
     /// The underlying buffer we're writing into. Borrowed, never reallocated.
-    pub data:  &'a mut [u8],
+    pub data: &'a mut [u8],
     /// Current write position. Always ≤ data.len().
-    pub pos:  usize,
+    pub pos: usize,
 }
 
 impl<'a> BytesWriter<'a> {
@@ -46,22 +46,23 @@ impl<'a> BytesWriter<'a> {
     /// Used by all base implementations.
     #[inline(always)]
     pub fn write_bytes(&mut self, src: &[u8]) -> Result<(), ToFromByteError> {
-    	let byte_count = src.len();
+        let byte_count = src.len();
 
-    	self.assert_enough_bytes(byte_count)?;
-        
+        self.assert_enough_bytes(byte_count)?;
+
         (&mut self.data[self.pos..self.pos + byte_count]).copy_from_slice(src);
-        
+
         self.pos += src.len();
-        
+
         Ok(())
     }
 
     #[inline(always)]
     fn assert_enough_bytes(&self, byte_count: usize) -> Result<(), ToFromByteError> {
-        if self.pos + byte_count > self.data.len() { return Err(ToFromByteError::NotEnoughBytes); }
+        if self.pos + byte_count > self.data.len() {
+            return Err(ToFromByteError::NotEnoughBytes);
+        }
 
         Ok(())
     }
-
 }

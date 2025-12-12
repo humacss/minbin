@@ -1,4 +1,4 @@
-use minbin::{ToFromByteError, BytesWriter};
+use minbin::{BytesWriter, ToFromByteError};
 
 #[test]
 fn writer_partial() {
@@ -26,7 +26,7 @@ fn writer_overflow() {
     let mut writer = BytesWriter::new(&mut buffer);
 
     writer.write_bytes(&[1, 2, 3, 4]).unwrap();
-    
+
     let err = writer.write_bytes(&[5]).unwrap_err();
     assert_eq!(err, ToFromByteError::NotEnoughBytes);
 }

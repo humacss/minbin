@@ -1,10 +1,9 @@
-
 extern crate alloc;
 
 use alloc::vec;
 use alloc::vec::Vec;
 
-use crate::{ToFromBytes, ToFromByteError, write_bytes};
+use crate::{write_bytes, ToFromByteError, ToFromBytes};
 
 /// Convenience function.
 ///
@@ -12,10 +11,11 @@ use crate::{ToFromBytes, ToFromByteError, write_bytes};
 ///
 /// Use this when the default implementation here is performant enough for your needs.
 ///
-/// Returns early with `TrailingBytes` if the writer didn't consume the entire buffer 
+/// Returns early with `TrailingBytes` if the writer didn't consume the entire buffer
 /// (this catches bugs in `byte_count` implementations instantly).
 pub fn to_bytes<T>(value: &T) -> Result<Vec<u8>, ToFromByteError>
-where T: for<'a> ToFromBytes<'a>
+where
+    T: for<'a> ToFromBytes<'a>,
 {
     let byte_count = value.byte_count();
 

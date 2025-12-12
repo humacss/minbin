@@ -1,21 +1,20 @@
+use criterion::{BatchSize, Criterion};
 use std::hint::black_box;
-use criterion::{Criterion, BatchSize};
 
-use minbin::{ToFromBytes, BytesWriter, BytesReader, ToFromByteError, write_bytes, read_bytes};
+use minbin::{read_bytes, write_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
 pub fn bench_value<T>(runner: &mut Criterion, name: &str, value: T)
-where T: for<'a> ToFromBytes<'a>
+where
+    T: for<'a> ToFromBytes<'a>,
 {
     let mut group = runner.benchmark_group(name);
 
-    let size = value.byte_count(); 
+    let size = value.byte_count();
 
     group.bench_function(&format!("{}_serialize", name), |bencher| {
         bencher.iter_batched(
             || vec![0u8; size],
-            |mut buffer| {
-                write_bytes(black_box(&value), black_box(&mut buffer))
-            },
+            |mut buffer| write_bytes(black_box(&value), black_box(&mut buffer)),
             BatchSize::SmallInput,
         );
     });
@@ -38,18 +37,16 @@ where T: for<'a> ToFromBytes<'a>
     group.finish();
 }
 
-
-
 pub struct BenchStruct {
-    pub uuid: u128, 
+    pub uuid: u128,
     pub timestamp: i64,
     pub name: String,
-    pub readings: Vec<u32>, 
+    pub readings: Vec<u32>,
 }
 
 impl<'a> ToFromBytes<'a> for BenchStruct {
     const MAX_BYTES: usize = 1_048_576;
-    
+
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         writer.write(&self.uuid)?;
         writer.write(&self.timestamp)?;
@@ -62,12 +59,21 @@ impl<'a> ToFromBytes<'a> for BenchStruct {
     fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
         let (uuid, timestamp, name, readings) = reader.read()?;
 
-        Ok((BenchStruct { uuid, timestamp, name, readings }, reader.pos))
+        Ok((
+            BenchStruct {
+                uuid,
+                timestamp,
+                name,
+                readings,
+            },
+            reader.pos,
+        ))
     }
 
     fn byte_count(&self) -> usize {
-        self.uuid.byte_count() + self.timestamp.byte_count() + 
-        self.name.byte_count() + self.readings.byte_count()
+        self.uuid.byte_count()
+            + self.timestamp.byte_count()
+            + self.name.byte_count()
+            + self.readings.byte_count()
     }
-
 }

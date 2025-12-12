@@ -1,4 +1,4 @@
-use minbin::{ToFromBytes, write_bytes, read_bytes};
+use minbin::{read_bytes, write_bytes, ToFromBytes};
 
 #[test]
 fn test_u8() {
@@ -7,10 +7,9 @@ fn test_u8() {
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
         let (actual, read_pos): (u8, usize) = read_bytes(&buffer[..write_pos]).unwrap();
 
-        assert_eq!(expected.byte_count(),   read_pos);
-        assert_eq!(expected,                actual);
+        assert_eq!(expected.byte_count(), read_pos);
+        assert_eq!(expected, actual);
     }
-    
 }
 
 #[test]
@@ -20,10 +19,9 @@ fn test_i8() {
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
         let (actual, read_pos): (i8, usize) = read_bytes(&buffer[..write_pos]).unwrap();
 
-        assert_eq!(expected.byte_count(),   read_pos);
-        assert_eq!(expected,                actual);
+        assert_eq!(expected.byte_count(), read_pos);
+        assert_eq!(expected, actual);
     }
-    
 }
 
 #[test]
@@ -33,10 +31,9 @@ fn test_u16() {
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
         let (actual, read_pos): (u16, usize) = read_bytes(&buffer[..write_pos]).unwrap();
 
-        assert_eq!(expected.byte_count(),   read_pos);
-        assert_eq!(expected,                actual);
+        assert_eq!(expected.byte_count(), read_pos);
+        assert_eq!(expected, actual);
     }
-    
 }
 
 #[test]
@@ -46,10 +43,9 @@ fn test_i16() {
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
         let (actual, read_pos): (i16, usize) = read_bytes(&buffer[..write_pos]).unwrap();
 
-        assert_eq!(expected.byte_count(),   read_pos);
-        assert_eq!(expected,                actual);
+        assert_eq!(expected.byte_count(), read_pos);
+        assert_eq!(expected, actual);
     }
-    
 }
 
 #[test]
@@ -59,10 +55,9 @@ fn test_u32() {
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
         let (actual, read_pos): (u32, usize) = read_bytes(&buffer[..write_pos]).unwrap();
 
-        assert_eq!(expected.byte_count(),   read_pos);
-        assert_eq!(expected,                actual);
+        assert_eq!(expected.byte_count(), read_pos);
+        assert_eq!(expected, actual);
     }
-    
 }
 
 #[test]
@@ -72,10 +67,9 @@ fn test_i32() {
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
         let (actual, read_pos): (i32, usize) = read_bytes(&buffer[..write_pos]).unwrap();
 
-        assert_eq!(expected.byte_count(),   read_pos);
-        assert_eq!(expected,                actual);
+        assert_eq!(expected.byte_count(), read_pos);
+        assert_eq!(expected, actual);
     }
-    
 }
 
 #[test]
@@ -85,10 +79,9 @@ fn test_u64() {
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
         let (actual, read_pos): (u64, usize) = read_bytes(&buffer[..write_pos]).unwrap();
 
-        assert_eq!(expected.byte_count(),   read_pos);
-        assert_eq!(expected,                actual);
+        assert_eq!(expected.byte_count(), read_pos);
+        assert_eq!(expected, actual);
     }
-    
 }
 
 #[test]
@@ -98,10 +91,9 @@ fn test_i64() {
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
         let (actual, read_pos): (i64, usize) = read_bytes(&buffer[..write_pos]).unwrap();
 
-        assert_eq!(expected.byte_count(),   read_pos);
-        assert_eq!(expected,                actual);
+        assert_eq!(expected.byte_count(), read_pos);
+        assert_eq!(expected, actual);
     }
-    
 }
 
 #[test]
@@ -111,10 +103,9 @@ fn test_u128() {
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
         let (actual, read_pos): (u128, usize) = read_bytes(&buffer[..write_pos]).unwrap();
 
-        assert_eq!(expected.byte_count(),   read_pos);
-        assert_eq!(expected,                actual);
+        assert_eq!(expected.byte_count(), read_pos);
+        assert_eq!(expected, actual);
     }
-    
 }
 
 #[test]
@@ -124,8 +115,7 @@ fn test_i128() {
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
         let (actual, read_pos): (i128, usize) = read_bytes(&buffer[..write_pos]).unwrap();
 
-        assert_eq!(expected.byte_count(),   read_pos);
-        assert_eq!(expected,                actual);
+        assert_eq!(expected.byte_count(), read_pos);
+        assert_eq!(expected, actual);
     }
-    
 }

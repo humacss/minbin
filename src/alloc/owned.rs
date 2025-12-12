@@ -5,24 +5,25 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use alloc::string::String;
+use alloc::vec::Vec;
 
-use crate::{ToFromBytes, ToFromByteError, BytesReader, BytesWriter};
+use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
 impl<'a, T> ToFromBytes<'a> for Vec<T>
-where T: ToFromBytes<'a>
+where
+    T: ToFromBytes<'a>,
 {
     const MAX_BYTES: usize = 1_048_576; // 1 MiB
 
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         let len = u32::try_from(self.len()).map_err(|_| ToFromByteError::InvalidValue)?;
-        
+
         writer.write(&len)?;
 
         for item in self {
-            writer.write(item)?;    
+            writer.write(item)?;
         }
 
         Ok(())
@@ -53,15 +54,13 @@ where T: ToFromBytes<'a>
     }
 }
 
-
-impl<'a> ToFromBytes<'a> for String
-{
+impl<'a> ToFromBytes<'a> for String {
     const MAX_BYTES: usize = 1_048_576; // 1 MiB
 
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
         let len = u32::try_from(self.len()).map_err(|_| ToFromByteError::InvalidValue)?;
-        
+
         writer.write(&len)?;
         writer.write_bytes(self.as_bytes())?;
 
