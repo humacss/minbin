@@ -19,15 +19,7 @@ impl<'a> ToFromBytes<'a> for ExampleStruct<'a> {
     fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
         let (uuid, timestamp, name, reading) = reader.read()?;
 
-        Ok((
-            ExampleStruct {
-                uuid,
-                timestamp,
-                name,
-                reading,
-            },
-            reader.pos,
-        ))
+        Ok((ExampleStruct { uuid, timestamp, name, reading }, reader.pos))
     }
 
     fn byte_count(&self) -> usize {
@@ -37,12 +29,7 @@ impl<'a> ToFromBytes<'a> for ExampleStruct<'a> {
 
 #[test]
 fn test_struct_stack() {
-    let expected = ExampleStruct {
-        uuid: 0,
-        timestamp: 1,
-        name: "example",
-        reading: 2,
-    };
+    let expected = ExampleStruct { uuid: 0, timestamp: 1, name: "example", reading: 2 };
 
     let mut buffer = [0u8; 1024];
     let write_pos = write_bytes(&expected, &mut buffer).unwrap();
@@ -60,12 +47,7 @@ fn test_struct_stack() {
 
 #[test]
 fn test_struct_heap() {
-    let expected = ExampleStruct {
-        uuid: 0,
-        timestamp: 1,
-        name: "example",
-        reading: 2,
-    };
+    let expected = ExampleStruct { uuid: 0, timestamp: 1, name: "example", reading: 2 };
 
     let mut buffer = vec![0u8; expected.byte_count()];
     let write_pos = write_bytes(&expected, &mut buffer).unwrap();

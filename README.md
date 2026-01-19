@@ -85,7 +85,7 @@ Performance? It is very fast, you just don't have to trade your sanity for cycle
 
 What you get with `minbin`:
 
-- <500 lines of easily auditable code
+- ~500 lines of easily auditable code
 - no macros, derives or hidden logic
 - no dependencies
 - no unsafe code (forbidden)

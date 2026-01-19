@@ -59,10 +59,7 @@ pub fn read_bytes<'a, T: ToFromBytes<'a>>(buffer: &'a [u8]) -> Result<(T, usize)
 ///
 /// Preferred over `to_bytes` (the alloc version) in hot paths and no-std code.
 #[inline]
-pub fn write_bytes<'a, T: ToFromBytes<'a>>(
-    value: &T,
-    buffer: &'a mut [u8],
-) -> Result<usize, ToFromByteError> {
+pub fn write_bytes<'a, T: ToFromBytes<'a>>(value: &T, buffer: &'a mut [u8]) -> Result<usize, ToFromByteError> {
     let buffer_len = buffer.len();
 
     if buffer_len < value.byte_count() {

@@ -59,21 +59,10 @@ impl<'a> ToFromBytes<'a> for BenchStruct {
     fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
         let (uuid, timestamp, name, readings) = reader.read()?;
 
-        Ok((
-            BenchStruct {
-                uuid,
-                timestamp,
-                name,
-                readings,
-            },
-            reader.pos,
-        ))
+        Ok((BenchStruct { uuid, timestamp, name, readings }, reader.pos))
     }
 
     fn byte_count(&self) -> usize {
-        self.uuid.byte_count()
-            + self.timestamp.byte_count()
-            + self.name.byte_count()
-            + self.readings.byte_count()
+        self.uuid.byte_count() + self.timestamp.byte_count() + self.name.byte_count() + self.readings.byte_count()
     }
 }

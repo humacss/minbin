@@ -16,9 +16,7 @@ impl ToFromBytes<'_> for u8 {
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
         let bytes = reader.read_bytes(1)?;
-        let bytes = bytes
-            .try_into()
-            .map_err(|_| ToFromByteError::NotEnoughBytes)?;
+        let bytes = bytes.try_into().map_err(|_| ToFromByteError::NotEnoughBytes)?;
 
         Ok((u8::from_be_bytes(bytes), reader.pos))
     }
@@ -40,9 +38,7 @@ impl ToFromBytes<'_> for i8 {
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
         let bytes = reader.read_bytes(1)?;
-        let bytes = bytes
-            .try_into()
-            .map_err(|_| ToFromByteError::NotEnoughBytes)?;
+        let bytes = bytes.try_into().map_err(|_| ToFromByteError::NotEnoughBytes)?;
 
         Ok((i8::from_be_bytes(bytes), reader.pos))
     }
@@ -64,9 +60,7 @@ impl ToFromBytes<'_> for u16 {
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
         let bytes = reader.read_bytes(2)?;
-        let bytes = bytes
-            .try_into()
-            .map_err(|_| ToFromByteError::NotEnoughBytes)?;
+        let bytes = bytes.try_into().map_err(|_| ToFromByteError::NotEnoughBytes)?;
 
         Ok((u16::from_be_bytes(bytes), reader.pos))
     }
@@ -88,9 +82,7 @@ impl ToFromBytes<'_> for i16 {
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
         let bytes = reader.read_bytes(2)?;
-        let bytes = bytes
-            .try_into()
-            .map_err(|_| ToFromByteError::NotEnoughBytes)?;
+        let bytes = bytes.try_into().map_err(|_| ToFromByteError::NotEnoughBytes)?;
 
         Ok((i16::from_be_bytes(bytes), reader.pos))
     }
@@ -112,9 +104,7 @@ impl ToFromBytes<'_> for u32 {
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
         let bytes = reader.read_bytes(4)?;
-        let bytes = bytes
-            .try_into()
-            .map_err(|_| ToFromByteError::NotEnoughBytes)?;
+        let bytes = bytes.try_into().map_err(|_| ToFromByteError::NotEnoughBytes)?;
 
         Ok((u32::from_be_bytes(bytes), reader.pos))
     }
@@ -136,9 +126,7 @@ impl ToFromBytes<'_> for i32 {
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
         let bytes = reader.read_bytes(4)?;
-        let bytes = bytes
-            .try_into()
-            .map_err(|_| ToFromByteError::NotEnoughBytes)?;
+        let bytes = bytes.try_into().map_err(|_| ToFromByteError::NotEnoughBytes)?;
 
         Ok((i32::from_be_bytes(bytes), reader.pos))
     }
@@ -160,9 +148,7 @@ impl ToFromBytes<'_> for u64 {
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
         let bytes = reader.read_bytes(8)?;
-        let bytes = bytes
-            .try_into()
-            .map_err(|_| ToFromByteError::NotEnoughBytes)?;
+        let bytes = bytes.try_into().map_err(|_| ToFromByteError::NotEnoughBytes)?;
 
         Ok((u64::from_be_bytes(bytes), reader.pos))
     }
@@ -184,9 +170,7 @@ impl ToFromBytes<'_> for i64 {
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
         let bytes = reader.read_bytes(8)?;
-        let bytes = bytes
-            .try_into()
-            .map_err(|_| ToFromByteError::NotEnoughBytes)?;
+        let bytes = bytes.try_into().map_err(|_| ToFromByteError::NotEnoughBytes)?;
 
         Ok((i64::from_be_bytes(bytes), reader.pos))
     }
@@ -208,9 +192,7 @@ impl ToFromBytes<'_> for u128 {
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
         let bytes = reader.read_bytes(16)?;
-        let bytes = bytes
-            .try_into()
-            .map_err(|_| ToFromByteError::NotEnoughBytes)?;
+        let bytes = bytes.try_into().map_err(|_| ToFromByteError::NotEnoughBytes)?;
 
         Ok((u128::from_be_bytes(bytes), reader.pos))
     }
@@ -232,9 +214,7 @@ impl ToFromBytes<'_> for i128 {
     #[inline(always)]
     fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
         let bytes = reader.read_bytes(16)?;
-        let bytes = bytes
-            .try_into()
-            .map_err(|_| ToFromByteError::NotEnoughBytes)?;
+        let bytes = bytes.try_into().map_err(|_| ToFromByteError::NotEnoughBytes)?;
 
         Ok((i128::from_be_bytes(bytes), reader.pos))
     }

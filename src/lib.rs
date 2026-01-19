@@ -58,9 +58,7 @@
 
 // The core implementation, always included
 pub mod core;
-pub use core::{
-    from_bytes, read_bytes, write_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes,
-};
+pub use core::{from_bytes, read_bytes, write_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
 // Implementations requiring the alloc crate.
 #[cfg(feature = "alloc")]

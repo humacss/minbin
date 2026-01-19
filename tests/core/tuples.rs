@@ -18,8 +18,7 @@ fn test_tuple_12() {
 
     let mut buffer = vec![0u8; expected.byte_count()];
     let write_pos = write_bytes(&expected, &mut buffer).unwrap();
-    let (actual, read_pos): ((u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8), usize) =
-        read_bytes(&buffer[..write_pos]).unwrap();
+    let (actual, read_pos): ((u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8), usize) = read_bytes(&buffer[..write_pos]).unwrap();
 
     assert_eq!(expected.byte_count(), read_pos);
     assert_eq!(expected, actual);
