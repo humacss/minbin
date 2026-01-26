@@ -60,6 +60,9 @@
 pub mod core;
 pub use core::{from_bytes, read_bytes, write_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
+/// Placeholder
+pub mod macros;
+
 // Implementations requiring the alloc crate.
 #[cfg(feature = "alloc")]
 pub mod alloc;

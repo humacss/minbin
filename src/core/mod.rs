@@ -14,16 +14,17 @@ pub mod api;
 pub mod containers;
 /// Contains all error states for the crate.
 pub mod error;
+/// Macros for implementing integers and tuples.
+mod macros;
 /// ToFromBytes trait implementations for primitive types.
 pub mod primitives;
 /// Used for traversing a byte slice for reading.
 pub mod reader;
 /// The trait used for serialization, implement the trait for serialization support.
 pub mod to_from_bytes;
-/// ToFromBytes trait implementations for tuples;
-pub mod tuples;
 /// Used for traversing a byte slice for writing.
 pub mod writer;
+
 
 pub use api::{from_bytes, read_bytes, write_bytes};
 pub use error::ToFromByteError;
