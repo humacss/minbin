@@ -40,7 +40,7 @@ minbin_struct!{ ExampleStruct [
 ] }
 
 #[test]
-fn test_macros() {
+fn test_struct_macro() {
     let expected = ExampleStruct{ 
         uuid: 0, 
         timestamp: 1, 
@@ -59,6 +59,21 @@ fn test_macros() {
     let actual: ExampleStruct = from_bytes(&bytes).unwrap();
 
     assert_eq!(expected, actual);
+}
+
+#[test]
+fn test_enum_macro() {
+    let expected = ExampleEnum::Ping;
+    assert_eq!(expected, from_bytes(&to_bytes(&expected).unwrap()).unwrap());
+
+    let expected = ExampleEnum::Temperature(30);
+    assert_eq!(expected, from_bytes(&to_bytes(&expected).unwrap()).unwrap());
+
+    let expected = ExampleEnum::Location(123_000, 124_000);
+    assert_eq!(expected, from_bytes(&to_bytes(&expected).unwrap()).unwrap());
+
+    let expected = ExampleEnum::Log{ time: 42, message: "Message".to_string() };
+    assert_eq!(expected, from_bytes(&to_bytes(&expected).unwrap()).unwrap());
 }
 
 #[test]

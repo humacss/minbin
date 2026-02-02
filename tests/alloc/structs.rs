@@ -11,16 +11,16 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
     const MAX_BYTES: usize = 1_048_576;
 
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
-        writer.write(&self.uuid)?;
-        writer.write(&self.timestamp)?;
-        writer.write(&self.name)?;
-        writer.write(&self.readings)?;
+        writer.write::<u128>(&self.uuid)?;
+        writer.write::<i64>(&self.timestamp)?;
+        writer.write::<String>(&self.name)?;
+        writer.write::<Vec<u16>>(&self.readings)?;
 
         Ok(())
     }
 
     fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let (uuid, timestamp, name, readings) = reader.read()?;
+        let (uuid, timestamp, name, readings): (u128, i64, String, Vec<u16>) = reader.read()?;
 
         Ok((ExampleStruct { uuid, timestamp, name, readings }, reader.pos))
     }
