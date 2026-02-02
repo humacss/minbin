@@ -1,10 +1,9 @@
-///! Placeholder
 
-// Placeholder
+///! Placeholder
 #[macro_export]
 macro_rules! minbin_struct {
-    ($struct_name:ident [ $(self . $property:ident: $property_type:ty),+ $(,)?]) => {
-		impl<'a> minbin::ToFromBytes<'a> for $struct_name {
+    ($name:ident [ $(self . $property:ident: $property_type:ty),+ $(,)?]) => {
+		impl<'a> minbin::ToFromBytes<'a> for $name {
 		    const MAX_BYTES: usize = 1_048_576;
 
 		    fn to_bytes(&self, writer: &mut minbin::BytesWriter<'a>) -> Result<(), minbin::ToFromByteError> {
@@ -30,43 +29,110 @@ macro_rules! minbin_struct {
     };
 }
 
-// Placeholder
+///! Placeholder
 #[macro_export]
 macro_rules! minbin_enum {
-    ($struct_name:ident [ $($discriminant:literal => Self :: $property:ident),+ $(,)?]) => {
-		impl<'a> minbin::ToFromBytes<'a> for $struct_name {
+    ($name:ident [ $([$($arm:tt)+]),+ $(,)?]) => {
+		impl<'a> minbin::ToFromBytes<'a> for $name {
 		    const MAX_BYTES: usize = 1_048_576;
 
 		    fn to_bytes(&self, writer: &mut minbin::BytesWriter<'a>) -> Result<(), minbin::ToFromByteError> {
-		    	match self {
-		    		$(Self::$property => {
-		    			writer.write::<u32>(&$discriminant)?;
-		    		}),+
-		    		_ => { return Err(minbin::ToFromByteError::UnhandledEnumArm); }
-		    	}
+		    	$($crate::minbin_enum_helper!{@write self, writer, $($arm)+ })+;
 
-		        Ok(())
+		        Err($crate::ToFromByteError::UnhandledEnumArm)
 		    }
 
 		    fn from_bytes(reader: &mut minbin::BytesReader<'a>) -> Result<(Self, usize), minbin::ToFromByteError> {
-		    	let discriminant = reader.read::<u32>()?;
+		    	let value = reader.read::<u32>()?;
 
-		    	let result = match discriminant {
-		    		$($discriminant => { Self::$property }),+,
-		    		_ => { return Err(minbin::ToFromByteError::UnhandledEnumArm); }
-		    	};
+		    	$($crate::minbin_enum_helper!{@read reader, value, $($arm)+ })+;
 
-		        Ok((result, reader.pos))
+				Err($crate::ToFromByteError::UnhandledEnumArm)
 		    }
 
 		    fn byte_count(&self) -> usize {
-		    	match self {
-		    		$(Self::$property => {
-		    			4
-		    		}),+,
-		    		_ => { 4 }
-		    	}
+		    	let mut count = 4; // discriminator size
+
+    			$($crate::minbin_enum_helper!{@byte_count self, count, $($arm)+ })+;
+
+		    	count
 		    }
 		}
     };
+}
+
+///! Placeholder
+#[macro_export]
+macro_rules! minbin_enum_helper {
+	(@discriminant $discriminant:literal => $($tail:tt)* ) => {
+		$discriminant
+	};
+
+	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident) => {
+		if let Self::$arm_name = $self {
+			$writer.write::<u32>(&$discriminant)?;
+
+			return Ok(());
+		}
+	};
+
+	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty),+)) => {
+		if let Self::$arm_name($($item_name),+) = $self {
+			$writer.write::<u32>(&$discriminant)?;	
+
+			$($writer.write::<$item_type>(&$item_name)?;)+
+
+			return Ok(());
+		}
+	};
+
+	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty),+}) => {
+		if let Self::$arm_name{$($item_name),+} = $self {
+			$writer.write::<u32>(&$discriminant)?;	
+
+			$($writer.write::<$item_type>(&$item_name)?;)+
+
+			return Ok(());
+		}
+	};
+
+	(@read $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident) => {
+		if $discriminant == $value {
+			return Ok((Self::$arm_name, $reader.pos));
+		}
+	};
+
+	(@read $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty),+)) => {
+		if $discriminant == $value {
+			$(let $item_name = $reader.read::<$item_type>()?;)+
+			
+			return Ok((Self::$arm_name($($item_name),+), $reader.pos));
+		}
+	};
+
+	(@read $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty),+}) => {
+		if $discriminant == $value {
+			$(let $item_name = $reader.read::<$item_type>()?;)+
+			
+			return Ok((Self::$arm_name{$($item_name),+}, $reader.pos));
+		}
+	};
+
+	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident) => {
+		if let Self::$arm_name = $self {
+			$count += 0;
+		}
+	};
+
+	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item:ty),+)) => {
+		if let Self::$arm_name($($item_name),+) = $self {
+			$($count += $item_name.byte_count();)+
+		}
+	};
+
+	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item:ty),+}) => {
+		if let Self::$arm_name{$($item_name),+} = $self {
+			$($count += $item_name.byte_count();)+
+		}
+	};
 }
