@@ -30,31 +30,31 @@ macro_rules! to_from_bytes_int {
 /// Placeholder
 #[macro_export]
 macro_rules! to_from_bytes_tuple {
-    ($($name:ident),+) => {
+    ($($name:ident),*) => {
         #[allow(non_snake_case)]
-        impl<'a, $($name: ToFromBytes<'a>),+> ToFromBytes<'a> for ($($name,)+)
+        impl<'a, $($name: ToFromBytes<'a>),*> ToFromBytes<'a> for ($($name,)*)
         {
             const MAX_BYTES: usize = 1_048_576; // 1 MiB
 
             #[inline(always)]
             fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
-                let ($($name,)+) = self;
-                $($name.to_bytes(writer)?;)+
+                let ($($name,)*) = self;
+                $($name.to_bytes(writer)?;)*
                 Ok(())
             }
 
             #[inline(always)]
             fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
                 Ok((
-                    ($(reader.read::<$name>()?,)+),
+                    ($(reader.read::<$name>()?,)*),
                     reader.pos
                 ))
             }
 
             #[inline(always)]
             fn byte_count(&self) -> usize {
-                let ($($name,)+) = self;
-                0 $(+ $name.byte_count())+
+                let ($($name,)*) = self;
+                0 $(+ $name.byte_count())*
             }
         }
     };

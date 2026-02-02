@@ -75,6 +75,7 @@ impl<'a> ToFromBytes<'a> for &'a str {
 }
 
 
+to_from_bytes_tuple!();
 to_from_bytes_tuple!(T0);
 to_from_bytes_tuple!(T0, T1);
 to_from_bytes_tuple!(T0, T1, T2);

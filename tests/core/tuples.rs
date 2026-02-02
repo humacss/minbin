@@ -1,6 +1,18 @@
 use minbin::{read_bytes, write_bytes, ToFromBytes};
 
 #[test]
+fn test_tuple_empty() {
+    let expected = ();
+
+    let mut buffer = vec![0u8; expected.byte_count()];
+    let write_pos = write_bytes(&expected, &mut buffer).unwrap();
+    let (actual, read_pos): ((), usize) = read_bytes(&buffer[..write_pos]).unwrap();
+
+    assert_eq!(expected.byte_count(), read_pos);
+    assert_eq!(expected, actual);
+}
+
+#[test]
 fn test_tuple_2() {
     let expected = (0u8, 1);
 
