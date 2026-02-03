@@ -1,4 +1,13 @@
-/// Big endian
+
+/// This is an internal macro not intended for use outside of this crate.
+///
+/// Generates `ToFromBytes` implementations for fixed-size integers (u8–u128, i8–i128).
+///
+/// Since each integer's implementation is almost identical a macro is easier to audit
+/// than hundreds of lines of boilerplate.
+///
+/// - Every integer is serialized in big-endian (human friendly)
+/// - We only support fixed size integers, no var-ints (predictable size)
 #[macro_export]
 macro_rules! to_from_bytes_int {
     ($int: ty, $byte_count: literal) => {
@@ -26,7 +35,14 @@ macro_rules! to_from_bytes_int {
     };
 }
 
-/// Placeholder
+/// This is an internal macro not intended for use outside of this crate.
+///
+/// Generates `ToFromBytes` implementations for fixed-size tuples (up to 12 elements).
+///
+/// Since each tuple's implementation is almost identical a macro is easier to audit
+/// than hundreds of lines of boilerplate.
+///
+/// The max tuple size supported is 12 items, which should be enough for most use-cases.
 #[macro_export]
 macro_rules! to_from_bytes_tuple {
     ($($name:ident),*) => {

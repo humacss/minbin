@@ -38,7 +38,7 @@ impl<'a> ToFromBytes<'a> for ExampleEnum {
         Ok(())
     }
 
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), minbin::ToFromByteError> {
+    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
         let discriminant = reader.read::<u8>()?;
 
         match discriminant {

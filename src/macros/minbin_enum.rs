@@ -57,8 +57,22 @@ macro_rules! minbin_enum {
     };
 }
 
-
-#[doc(hidden)]
+/// This is an internal macro not intended for use outside of this crate.
+///
+/// Helper for `minbin_enum!` that handles different enum syntax (Unit, Tuple, Struct).
+///
+/// Without a helper macro we need to rely on either proc macros or a recursive muncher for 
+/// matching on different syntax.
+///
+/// Since we focus on auditability it is important that the macro is easy to read. 
+/// Munchers are hard to debug, maintain and can result in slower compile times. Proc macros add 
+/// too much magic and complicates the crate, we keep it simple by using only declarative macros.
+///
+/// Unfortunately declarative macros are not well suited for generating match clauses so we use if 
+/// clauses instead. This has some performance implications since conditions are evaluated 
+/// separately, but macro simplicity takes priority. 
+///
+/// If you need exhaustive matchers or better performance you should implement the trait manually.
 #[macro_export]
 macro_rules! minbin_enum_helper {
 	(@discriminant $discriminant:literal => $($tail:tt)* ) => {

@@ -16,6 +16,7 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
         writer.write::<i64>(&self.timestamp)?;
         writer.write::<String>(&self.name)?;
         writer.write::<Vec<String>>(&self.readings)?;
+        
         Ok(())
     }
     fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
@@ -23,10 +24,14 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
         let timestamp = reader.read::<i64>()?;
         let name = reader.read::<String>()?;
         let readings = reader.read::<Vec<String>>()?;
+        
         Ok((Self { uuid, timestamp, name, readings }, reader.pos))
     }
     fn byte_count(&self) -> usize {
-        self.uuid.byte_count() + self.timestamp.byte_count() + self.name.byte_count() + self.readings.byte_count() + 0
+        self.uuid.byte_count() + 
+        self.timestamp.byte_count() + 
+        self.name.byte_count() + 
+        self.readings.byte_count()
     }
 }
 
