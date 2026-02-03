@@ -12,7 +12,7 @@ macro_rules! minbin_enum {
 		    }
 
 		    fn from_bytes(reader: &mut minbin::BytesReader<'a>) -> Result<(Self, usize), minbin::ToFromByteError> {
-		    	let value = reader.read::<u32>()?;
+		    	let value = reader.read::<u8>()?;
 
 		    	$($crate::minbin_enum_helper!{@read reader, value, $($arm)+ })+;
 
@@ -20,7 +20,7 @@ macro_rules! minbin_enum {
 		    }
 
 		    fn byte_count(&self) -> usize {
-		    	let mut count = 4; // discriminator size
+		    	let mut count = 1; // discriminator size
 
     			$($crate::minbin_enum_helper!{@byte_count self, count, $($arm)+ })+;
 
@@ -40,7 +40,7 @@ macro_rules! minbin_enum_helper {
 	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident) => {
 		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name = $self {
-			$writer.write::<u32>(&$discriminant)?;
+			$writer.write::<u8>(&$discriminant)?;
 
 			return Ok(());
 		}
@@ -49,7 +49,7 @@ macro_rules! minbin_enum_helper {
 	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty),*)) => {
 		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name($($item_name),*) = $self {
-			$writer.write::<u32>(&$discriminant)?;
+			$writer.write::<u8>(&$discriminant)?;
 
 			$($writer.write::<$item_type>(&$item_name)?;)*
 
@@ -60,7 +60,7 @@ macro_rules! minbin_enum_helper {
 	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty),*}) => {
 		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name{$($item_name),*} = $self {
-			$writer.write::<u32>(&$discriminant)?;
+			$writer.write::<u8>(&$discriminant)?;
 
 			$($writer.write::<$item_type>(&$item_name)?;)*
 
