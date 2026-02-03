@@ -1,8 +1,6 @@
 [![Crates.io](https://img.shields.io/crates/v/minbin.svg)](https://crates.io/crates/minbin)
 [![Docs](https://docs.rs/minbin/badge.svg)](https://docs.rs/minbin)
 [![Qlty](https://qlty.sh/gh/humacss/projects/minbin/maintainability.svg)](https://qlty.sh/gh/humacss/projects/minbin)
-[![Codacy](https://app.codacy.com/project/badge/Grade/3452ad7cb1e2408eb17229e810c8acfb)](https://app.codacy.com/gh/humacss/minbin/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=humacss_minbin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=humacss_minbin)
 
 # minbin
 When both sides are Rust and you just want your structs as bytes without committing to a more complex crate.
