@@ -1,4 +1,31 @@
-/// Placeholder
+/// Declarative macro that generates a `ToFromBytes` implementation for an enum
+/// using a simple discriminant + payload layout.
+///
+/// Syntax:
+///
+/// ```rust
+/// enum ExampleEnum {
+///     Ping,
+///     Temperature(i16),
+///     Location(i32, i32),
+///     Log { time: i64, message: String },
+/// }
+/// 
+/// minbin::minbin_enum! { ExampleEnum [
+///     [0 => Self::Ping],
+///     [1 => Self::Temperature(degrees: i16)],
+///     [2 => Self::Location(lat: i32, lon: i32)],
+///     [3 => Self::Log{ time: i64, message: String }]
+/// ] }
+/// ```
+///
+/// Limitations / design choices:
+/// - Uses `u8` discriminant (max 255 variants)
+/// - Generates `if let` chains instead of `match` (to keep macro simpler)
+/// - Returns `UnhandledEnumArm` when the discriminant is unknown
+/// - Requires unit tests to catch discriminant duplicates and unhandled arms
+///
+/// For more complex enums you should write the `ToFromBytes` implementation manually.
 #[macro_export]
 macro_rules! minbin_enum {
     ($name:ident [ $([$($arm:tt)+]),+ $(,)?]) => {
@@ -30,7 +57,8 @@ macro_rules! minbin_enum {
     };
 }
 
-/// Placeholder
+
+#[doc(hidden)]
 #[macro_export]
 macro_rules! minbin_enum_helper {
 	(@discriminant $discriminant:literal => $($tail:tt)* ) => {
@@ -38,7 +66,6 @@ macro_rules! minbin_enum_helper {
 	};
 
 	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident) => {
-		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name = $self {
 			$writer.write::<u8>(&$discriminant)?;
 
@@ -47,7 +74,6 @@ macro_rules! minbin_enum_helper {
 	};
 
 	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty),*)) => {
-		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name($($item_name),*) = $self {
 			$writer.write::<u8>(&$discriminant)?;
 
@@ -58,7 +84,6 @@ macro_rules! minbin_enum_helper {
 	};
 
 	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty),*}) => {
-		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name{$($item_name),*} = $self {
 			$writer.write::<u8>(&$discriminant)?;
 
@@ -91,21 +116,18 @@ macro_rules! minbin_enum_helper {
 	};
 
 	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident) => {
-		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name = $self {
 			$count += 0;
 		}
 	};
 
 	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item:ty),*)) => {
-		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name($($item_name),*) = $self {
 			$($count += $item_name.byte_count();)*
 		}
 	};
 
 	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item:ty),*}) => {
-		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name{$($item_name),*} = $self {
 			$($count += $item_name.byte_count();)*
 		}

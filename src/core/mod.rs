@@ -14,7 +14,7 @@ pub mod api;
 pub mod containers;
 /// Contains all error states for the crate.
 pub mod error;
-/// Macros for implementing integers and tuples.
+/// Helper macros used internally to implement `ToFromBytes` for integers and tuples.
 mod macros;
 /// ToFromBytes trait implementations for primitive types.
 pub mod primitives;

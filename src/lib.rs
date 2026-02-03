@@ -56,7 +56,7 @@
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
 
-// The core implementation, always included
+/// Re-exports everything needed for typical usage.
 pub mod core;
 pub use core::{from_bytes, read_bytes, write_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
