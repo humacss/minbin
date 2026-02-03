@@ -99,7 +99,7 @@ mod tests {
 }
 ```
 
-You can also implement the trait [manually](#manual-implementation) for complex cases not supported by the macro. The macro is just a convenience that helps you reduce boilerplate, manual implementations are straightforward and encouraged.
+You can also implement the trait [manually](#manual-implementations) for complex cases not supported by the macro. The macro is just a convenience that helps you reduce boilerplate, manual implementations are straightforward and encouraged.
 
 ## Why yet another serializer?
 Many Rust projects need to turn a struct into bytes and back at some point.
