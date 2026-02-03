@@ -60,7 +60,7 @@
 pub mod core;
 pub use core::{from_bytes, read_bytes, write_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
-/// Placeholder
+/// Helper macros for implementing `ToFromBytes`.
 pub mod macros;
 
 // Implementations requiring the alloc crate.
