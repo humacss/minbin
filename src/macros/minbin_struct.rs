@@ -1,5 +1,4 @@
-
-///! Placeholder
+/// Placeholder
 #[macro_export]
 macro_rules! minbin_struct {
     ($name:ident [ $(self . $property:ident: $property_type:ty),+ $(,)?]) => {
@@ -18,7 +17,7 @@ macro_rules! minbin_struct {
 		        $(
                     let $property = reader.read::<$property_type>()?;
                 )+
-		        
+
 		        Ok((Self { $($property,)+ }, reader.pos))
 		    }
 

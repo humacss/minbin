@@ -1,9 +1,9 @@
 [package]
 name = "minbin"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 license = "MIT"
-description = "Minimal, manual, no-std, zero-dependency, big-endian binary serialization."
+description = "A tiny (~500 LOC), zero-dependency, safe, no-std binary serializer prioritizing predictability and auditability."
 repository = "https://github.com/humacss/minbin"
 documentation = "https://docs.rs/minbin"
 readme = "README.md"

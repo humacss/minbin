@@ -25,7 +25,6 @@ pub mod to_from_bytes;
 /// Used for traversing a byte slice for writing.
 pub mod writer;
 
-
 pub use api::{from_bytes, read_bytes, write_bytes};
 pub use error::ToFromByteError;
 pub use reader::BytesReader;

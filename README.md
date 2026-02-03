@@ -2,60 +2,82 @@
 [![Docs](https://docs.rs/minbin/badge.svg)](https://docs.rs/minbin)
 
 # minbin
+When both sides are Rust and you just want your structs as bytes without committing to a more complex crate.
 
-Just use this one.
+`minbin` is a tiny (~500 LOC), zero-dependency, safe, no-std binary serializer prioritizing predictability and auditability.
+It is intended as a sensible default choice for new Rust projects before you know which trade-offs actually matter for your use-case.
 
-When you control both sides, they’re using Rust, and you just want your struct as bytes without thinking too hard.
+`minbin` is a dependency you can audit in minutes, instead of untangling proc macros, dependency trees, and thousands of lines of code.
+It is usually all you need until you hit a limitation that justifies committing to something bigger. 
 
-- You don’t want to open a new repo and see a workspace with a crate list.  
-- You don’t want a dependency tree that scrolls.  
-- You don’t want unsafe code.  
-- You don’t want any derive/attribute magic.  
-- You just want the bytes.  
+Specialized crates are excellent when you have a concrete serialization bottleneck, `minbin` lets you defer that choice until you do.
+`minbin` supports manual implementation and can handle millions of packets per second (see [benchmarks](#performance-in-practice)), that's often all you need.
 
-Today.
+## Usage
 
-```toml
-# Cargo.toml
-[dependencies]
-minbin = "0.1"
+Install the crate:
+```
+cargo add minbin
+```
+Now use the helper macro to implement the [`ToFromBytes`](https://github.com/humacss/minbin/tree/main/src/core/to_from_bytes.rs) trait for your structs and enums.
+
+### Enum example
+```rust
+#[derive(Debug, PartialEq)]
+enum ExampleEnum {
+    Ping,
+    Temperature(i16),
+    Location(i32, i32),
+    Log{ time: i64, message: String }
+}
+
+minbin::minbin_enum!{ ExampleEnum [
+    [0 => Self::Ping],
+    [1 => Self::Temperature(degrees: i16)],
+    [2 => Self::Location(lat: i32, lon: i32)],
+    [3 => Self::Log{ time: i64, message: String }]
+] }
+
+#[cfg(test)]
+mod tests {    
+    use super::*;
+
+    #[test]
+    fn test_enum_roundtrip() {
+        let cases = [
+            ExampleEnum::Ping,
+            ExampleEnum::Temperature(-18),
+            ExampleEnum::Location(48_856_614, 2_352_221),
+            ExampleEnum::Log { time: 1_738_585_200, message: "Server started".to_string() },
+        ];
+
+        for expected in cases {
+            let bytes = to_bytes(&expected).unwrap();
+            let decoded = from_bytes(&bytes).unwrap();
+            assert_eq!(expected, decoded);
+        }
+    }
+}
+
 ```
 
+### Struct example
 ```rust
-use minbin::{BytesWriter, BytesReader, ToFromBytes, ToFromByteError, to_bytes, from_bytes};
-
+#[derive(Debug, PartialEq)]
 struct ExampleStruct {
     uuid: u128,
     timestamp: i64,
     name: String,
-    readings: Vec<u16>,
+    readings: Vec<ExampleEnum>,
 }
 
-impl<'a> ToFromBytes<'a> for ExampleStruct {
-    const MAX_BYTES: usize = 1_048_576;
+minbin::minbin_struct!{ ExampleStruct [
+    self.uuid: u128,
+    self.timestamp: i64,
+    self.name: String,
+    self.readings: Vec<ExampleEnum>
+] }
 
-    fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
-        writer.write(&self.uuid)?;
-        writer.write(&self.timestamp)?;
-        writer.write(&self.name)?;
-        writer.write(&self.readings)?;
-
-        Ok(())
-    }
-
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let (uuid, timestamp, name, readings) = reader.read()?;
-
-        Ok((ExampleStruct { uuid, timestamp, name, readings }, reader.pos))
-    }
-
-    fn byte_count(&self) -> usize {
-        self.uuid.byte_count() + self.timestamp.byte_count() + self.name.byte_count() + self.readings.byte_count()
-    }
-}
-```
-
-```rust
 #[cfg(test)]
 mod tests {    
     use super::*;
@@ -63,131 +85,32 @@ mod tests {
     use minbin::{to_bytes, from_bytes};
 
     #[test]
-    fn test_struct() {
-        let expected = ExampleStruct{ uuid: 0, timestamp: 1, name: "example".to_string(), readings: vec![1, 2, 3, 4] };
-
+    fn test_struct_roundtrip() {
+        let expected = ExampleStruct {
+            uuid: u128::MAX,
+            timestamp: i64::MAX,
+            name: "Name".to_string(),
+            readings: vec![ExampleEnum::Ping],
+        };
         let bytes = to_bytes(&expected).unwrap();
-        let actual: ExampleStruct = from_bytes(&bytes).unwrap();
-
-        assert_eq!(expected.uuid,           actual.uuid);
-        assert_eq!(expected.timestamp,      actual.timestamp);
-        assert_eq!(expected.name,           actual.name);
-        assert_eq!(expected.readings,       actual.readings);
+        let actual = from_bytes(&bytes).unwrap();
+        assert_eq!(expected, actual);
     }
-
 }
 ```
 
-## Keep it Simple
-`minbin` is a binary serializer that optimizes for humans first.
-
-Performance? It is very fast, you just don't have to trade your sanity for cycles.
-
-What you get with `minbin`:
-
-- ~500 lines of easily auditable code
-- no macros, derives or hidden logic
-- no dependencies
-- no unsafe code (forbidden)
-- `no-std`
-- pure Rust
-- just one tiny trait you fully control
-
-You own every byte, every time, with zero magic in the way.
-
-If you have to talk to another system that forces a format on you, reach for something heavier.  
-
-Otherwise, `minbin` is the serialization crate you can start with on any project.
-
-You’ll understand it at 3 a.m., your bugfix will be ready before sunrise, and you’ll never hesitate to add it.
-
-Start here.  
-Stay here.
-
-You probably won’t need anything else.
-
-## Now that I have your attention...
-
-`minbin` is **not** trying to replace `serde`, `postcard`, `bincode`, `rkyv`, `flatbuffers`, or anything else.  
-
-Those tools are amazing when you need what they do.
-
-`minbin` is deliberately for the case where:
-- You control both sides of the wire
-- Both sides are Rust (or you’re willing to write the glue)
-- You value “I can read and fix this at 3 a.m, without Stack Overflow” over maximum performance or minimum message size
-- Your messages are small and don't need to be streamed
-- Serialization is not your bottleneck
-
-Adding too many moving parts will just complicate your code unnecessarily.  
-
-That's why `minbin` focuses on simplicity first.  
-
-If you can write Rust, you can use and debug `minbin`.
-
-### What `minbin` actually is
-- Safe, `no_std`-compatible, zero-dependency Rust
-- One trait you implement by hand (yes, really)
-- Zero proc macros, zero derives, zero magic (one macro for [tuple](/src/core/tuples.rs) implementations)
-- Big-endian by default
-- Fixed width types
-- Max u32 length containers
-
-### Performance in practice 
-These are my results when running the benches with Criterion on an Apple M3 Pro using Rust 1.90.0.
-
-| Type                                             | Serialize | Deserialize |
-|--------------------------------------------------|-----------|-------------|
-| `u8-128`, `i8-i128`, `bool`                      | ~8 ns     | ~8 ns       |
-| 100B Vec<u32>                                    | ~24 ns    | ~38 ns      |
-| 100B `String`     (1 byte chars)                 | ~13 ns    | ~30 ns      |
-| 100B `String`     (4 byte chars)                 | ~17 ns    | ~77 ns      |
-| 200B struct       (includes 100B, 4 char string) | ~37 ns    | ~115 ns     |
-*Deserialization of String includes UTF-8 validation.*
-
-Real-world takeaway:
-- Serializing a 200 byte game packet: **~27 million times / second**
-- Deserializing the same packet: **~8.7 million times / second**
-
-That's on one core. This should be faster than your other bottlenecks.
-
-### Why the tone up top?
-Most serialization crates greet you with feature lists, configuration options, gotchas...  
-
-I usually have to read half the docs before I even know whether the crate is a good fit.
-
-I wanted you to get the answer in ten seconds flat: “Is this for me? Yes or no?”
-
-If you’re still here, I hope you already know which camp you’re in.  
-
-If `minbin` fits your need, I hope it saves you a bunch of time and a few sleepless nights.
-
-### If `minbin` isn’t for you, here are some alternatives
-
-- You need maximum performance or zero-copy: **rkyv**
-- You need tiny message size, no-std or serde: **postcard**
-- You want to "just throw any Rust type at it": **bincode**
-- You have to talk to other languages or need schema evolution: **protobuf**, **flatbuffers**, or **cap’n proto**
-
-`minbin` deliberately gives up all of the above to stay simple, auditable and predictable.
+You can also implement the trait [manually](#manual-implementation) for complex cases not supported by the macro. The macro is just a convenience that helps you reduce boilerplate, manual implementations are straightforward and encouraged.
 
 ## Why yet another serializer?
-
 Many Rust projects need to turn a struct into bytes and back at some point.
 
-Yet almost every other crate forces you to commit on day one to features you probably don’t need yet:
-
-- schema evolution
-- zero-copy deserialization
-- cross-language support
-- versioning
-- compact wire format
+Yet almost every other crate forces you to commit on day one to features and trade-offs you probably don’t need yet.
 
 Picking wrong means pain later: you either live with the wrong trade-offs forever or pay a heavy migration tax.
 
 `minbin` refuses to make you choose.
 
-It’s deliberately bare-bones, fully auditable, and has zero hidden behavior. 
+It’s deliberately bare-bones, fully auditable, and has zero hidden behavior.
 
 You write the serialization code yourself, so you always understand exactly what’s on the wire. 
 
@@ -199,3 +122,85 @@ Ship code today.
 Only graduate to something heavier when you can name the precise problem you’re solving.
 
 For most projects, that day comes later than you would expect.
+
+## When to use `minbin`
+
+- You control both sides of the wire
+- Both sides are Rust (or you’re willing to write the glue)
+- You value “I can read and fix this at 3 a.m. without Stack Overflow” over maximum performance or minimum message size
+- Your messages are small and don't need to be streamed
+- Serialization is not your bottleneck
+
+Adding too many moving parts will just complicate your code unnecessarily.
+
+That's why `minbin` focuses on simplicity first.
+
+If you can write Rust, you can use and debug `minbin`.
+
+## When NOT to use `minbin`
+
+| You need                                   | Better alternatives                      |
+|--------------------------------------------|------------------------------------------|
+| zero-copy deserialization                  | `rkyv`                                   |
+| smallest possible on-wire size             | `postcard`                               |
+| cross-language support                     | `prost`, `flatbuffers`, `cap'n proto`    |
+| serde integration                          | `bincode`, `postcard`                    |
+
+`minbin` deliberately gives up all of the above to stay simple, auditable and predictable.
+
+### Performance in practice 
+These are my results when running the benches with Criterion on an Apple M3 Pro using Rust 1.90.0.
+
+| Type                                             | Serialize | Deserialize |
+|--------------------------------------------------|-----------|-------------|
+| `u8-128`, `i8-i128`, `bool`                      | ~8 ns     | ~8 ns       |
+| 100B Vec<u32>                                    | ~24 ns    | ~38 ns      |
+| 100B `String`     (1 byte chars)                 | ~13 ns    | ~30 ns      |
+| 100B `String`     (4 byte chars)                 | ~17 ns    | ~77 ns      |
+| 200B struct       (includes 100B, 4 char string) | ~37 ns    | ~115 ns     |
+
+*Deserialization of String includes UTF-8 validation.[^strings]*
+
+[^strings]: Deserializing strings(`String`, `&str`) is often more expensive than other types due to UTF-8 validation. This cannot be avoided without using `unsafe`. To avoid this cost you can use a `Vec<u8>` representing the UTF-8 bytes instead.
+
+Real-world takeaway:
+- Serializing a 200 byte game packet: **~27 million times / second**
+- Deserializing the same packet: **~8.7 million times / second**
+
+That's on one core. This is usually fast enough that it won't be your bottleneck.
+
+## Examples
+
+### Manual implementations
+
+Manual implementations are not difficult, it's just a lot of unnecessary boilerplate for very simple cases.
+
+See the examples here:
+    - [Structs](https://github.com/humacss/minbin/tree/main/examples/manual-struct)
+    - [Enum](https://github.com/humacss/minbin/tree/main/examples/manual-enum)
+
+For trivial cases the `minbin_struct!` and `minbin_enum!` macros work well. 
+For anything complicated manual implementation is recommended. 
+
+### Inspecting macro implementations
+You can inspect the output of the code generated by the macro using the two macro examples.
+
+Install cargo-expand on your system:
+```bash
+cargo install cargo-expand              
+```
+
+Output the code generated from [examples/macro-enum](https://github.com/humacss/minbin/tree/main/examples/macro-enum.rs)
+```bash
+cargo expand --example macro_enum    
+```
+
+Output the code generated from [examples/macro-struct](https://github.com/humacss/minbin/tree/main/examples/macro-struct.rs)
+```bash
+cargo expand --example macro_struct    
+```
+
+## Future work
+- optional little-endian feature (currently only big-endian is supported)
+- &[T] support (for primitive types without `unsafe`)
+- more examples showcasing common use-cases (versioning, server)

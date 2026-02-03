@@ -3,7 +3,7 @@
 //! All integers are serialized in big-endian byte order using `to_be_bytes`/`from_be_bytes`.
 //! Fixed-width types ensure the size is always known at compile time, meaning less errors for us to deal with.
 
-use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes, to_from_bytes_int};
+use crate::{to_from_bytes_int, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
 impl ToFromBytes<'_> for bool {
     const MAX_BYTES: usize = 1;

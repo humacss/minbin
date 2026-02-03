@@ -1,4 +1,4 @@
-///! Placeholder
+/// Placeholder
 #[macro_export]
 macro_rules! minbin_enum {
     ($name:ident [ $([$($arm:tt)+]),+ $(,)?]) => {
@@ -30,7 +30,7 @@ macro_rules! minbin_enum {
     };
 }
 
-///! Placeholder
+/// Placeholder
 #[macro_export]
 macro_rules! minbin_enum_helper {
 	(@discriminant $discriminant:literal => $($tail:tt)* ) => {
@@ -38,6 +38,7 @@ macro_rules! minbin_enum_helper {
 	};
 
 	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident) => {
+		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name = $self {
 			$writer.write::<u32>(&$discriminant)?;
 
@@ -46,8 +47,9 @@ macro_rules! minbin_enum_helper {
 	};
 
 	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty),*)) => {
+		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name($($item_name),*) = $self {
-			$writer.write::<u32>(&$discriminant)?;	
+			$writer.write::<u32>(&$discriminant)?;
 
 			$($writer.write::<$item_type>(&$item_name)?;)*
 
@@ -56,8 +58,9 @@ macro_rules! minbin_enum_helper {
 	};
 
 	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty),*}) => {
+		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name{$($item_name),*} = $self {
-			$writer.write::<u32>(&$discriminant)?;	
+			$writer.write::<u32>(&$discriminant)?;
 
 			$($writer.write::<$item_type>(&$item_name)?;)*
 
@@ -74,7 +77,7 @@ macro_rules! minbin_enum_helper {
 	(@read $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty),*)) => {
 		if $discriminant == $value {
 			$(let $item_name = $reader.read::<$item_type>()?;)*
-			
+
 			return Ok((Self::$arm_name($($item_name),*), $reader.pos));
 		}
 	};
@@ -82,24 +85,27 @@ macro_rules! minbin_enum_helper {
 	(@read $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty),*}) => {
 		if $discriminant == $value {
 			$(let $item_name = $reader.read::<$item_type>()?;)*
-			
+
 			return Ok((Self::$arm_name{$($item_name),*}, $reader.pos));
 		}
 	};
 
 	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident) => {
+		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name = $self {
 			$count += 0;
 		}
 	};
 
 	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item:ty),*)) => {
+		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name($($item_name),*) = $self {
 			$($count += $item_name.byte_count();)*
 		}
 	};
 
 	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item:ty),*}) => {
+		// We're using ifs instead of a match above because declarative macros don't support match clauses well.
 		if let Self::$arm_name{$($item_name),*} = $self {
 			$($count += $item_name.byte_count();)*
 		}
