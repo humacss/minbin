@@ -17,6 +17,8 @@ pub enum ToFromByteError {
     MaxBytesExceeded,
     /// The deserialized value is invalid for the type (e.g., invalid bool, invalid UTF-8).
     InvalidValue,
+    /// Returned when the enum macro ToFromBytes implementation calls an unhandled enum arm.
+    UnhandledEnumArm,
 }
 
 impl fmt::Display for ToFromByteError {
@@ -26,6 +28,7 @@ impl fmt::Display for ToFromByteError {
             ToFromByteError::TrailingBytes => formatter.write_str("trailing bytes"),
             ToFromByteError::MaxBytesExceeded => formatter.write_str("max bytes exceeded"),
             ToFromByteError::InvalidValue => formatter.write_str("invalid value"),
+            ToFromByteError::UnhandledEnumArm => formatter.write_str("unhandled enum arm"),
         }
     }
 }

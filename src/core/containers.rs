@@ -1,4 +1,4 @@
-use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
+use crate::{to_from_bytes_tuple, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
 impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
     const MAX_BYTES: usize = 1 + T::MAX_BYTES;
@@ -73,3 +73,18 @@ impl<'a> ToFromBytes<'a> for &'a str {
         4 + self.len()
     }
 }
+
+to_from_bytes_tuple!();
+to_from_bytes_tuple!(T0);
+to_from_bytes_tuple!(T0, T1);
+to_from_bytes_tuple!(T0, T1, T2);
+to_from_bytes_tuple!(T0, T1, T2, T3);
+to_from_bytes_tuple!(T0, T1, T2, T3, T4);
+to_from_bytes_tuple!(T0, T1, T2, T3, T4, T5);
+to_from_bytes_tuple!(T0, T1, T2, T3, T4, T5, T6);
+to_from_bytes_tuple!(T0, T1, T2, T3, T4, T5, T6, T7);
+to_from_bytes_tuple!(T0, T1, T2, T3, T4, T5, T6, T7, T8);
+to_from_bytes_tuple!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9);
+to_from_bytes_tuple!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10);
+to_from_bytes_tuple!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11);
+to_from_bytes_tuple!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12);
