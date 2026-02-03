@@ -176,8 +176,8 @@ That's on one core. This is usually fast enough that it won't be your bottleneck
 Manual implementations are not difficult, it's just a lot of unnecessary boilerplate for very simple cases.
 
 See the examples here:
-    - [Structs](https://github.com/humacss/minbin/tree/main/examples/manual-struct)
-    - [Enum](https://github.com/humacss/minbin/tree/main/examples/manual-enum)
+- [Structs](https://github.com/humacss/minbin/tree/main/examples/manual-struct)
+- [Enum](https://github.com/humacss/minbin/tree/main/examples/manual-enum)
 
 For trivial cases the `minbin_struct!` and `minbin_enum!` macros work well. 
 For anything complicated manual implementation is recommended. 
