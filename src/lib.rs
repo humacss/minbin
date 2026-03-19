@@ -58,12 +58,12 @@
 
 /// Re-exports everything needed for typical usage.
 pub mod core;
-pub use core::{from_bytes, read_bytes, write_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
+pub use core::{bytes_into, from_bytes, read_bytes, read_into, write_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
-/// Helper macros for implementing `ToFromBytes`.
+/// Convenience macros for implementing `ToFromBytes` on structs and enums.
 pub mod macros;
 
-// Implementations requiring the alloc crate.
+/// Implementations requiring the alloc crate.
 #[cfg(feature = "alloc")]
 pub mod alloc;
 #[cfg(feature = "alloc")]

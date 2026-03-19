@@ -8,6 +8,12 @@ enum ExampleEnum {
     Log { time: i64, message: String },
 }
 
+impl Default for ExampleEnum {
+    fn default() -> Self {
+        ExampleEnum::Ping
+    }
+}
+
 impl<'a> ToFromBytes<'a> for ExampleEnum {
     const MAX_BYTES: usize = 1_048_576;
 
@@ -38,30 +44,29 @@ impl<'a> ToFromBytes<'a> for ExampleEnum {
         Ok(())
     }
 
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let discriminant = reader.read::<u8>()?;
+    fn from_bytes(buffer: &mut Self, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
+        let discriminant: u8 = reader.read(u8::default)?;
 
         match discriminant {
-            0 => Ok((Self::Ping, reader.pos)),
+            0 => *buffer = Self::Ping,
             1 => {
-                let degrees = reader.read::<i16>()?;
-
-                Ok((Self::Temperature(degrees), reader.pos))
+                let degrees: i16 = reader.read(i16::default)?;
+                *buffer = Self::Temperature(degrees);
             }
             2 => {
-                let lat = reader.read::<i32>()?;
-                let lon = reader.read::<i32>()?;
-
-                Ok((Self::Location(lat, lon), reader.pos))
+                let lat: i32 = reader.read(i32::default)?;
+                let lon: i32 = reader.read(i32::default)?;
+                *buffer = Self::Location(lat, lon);
             }
             3 => {
-                let time = reader.read::<i64>()?;
-                let message = reader.read::<String>()?;
-
-                Ok((Self::Log { time, message }, reader.pos))
+                let time: i64 = reader.read(i64::default)?;
+                let message: String = reader.read(String::default)?;
+                *buffer = Self::Log { time, message };
             }
-            _ => Err(ToFromByteError::UnhandledEnumArm),
+            _ => return Err(ToFromByteError::UnhandledEnumArm),
         }
+
+        Ok(reader.pos)
     }
 
     fn byte_count(&self) -> usize {
@@ -84,7 +89,7 @@ fn main() {
 
     for expected in cases {
         let bytes = to_bytes(&expected).unwrap();
-        let decoded = from_bytes(&bytes).unwrap();
+        let decoded = from_bytes(ExampleEnum::default, &bytes).unwrap();
         assert_eq!(expected, decoded);
     }
 }

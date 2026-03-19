@@ -50,7 +50,7 @@ pub trait ToFromBytes<'a> {
     /// Deserializes the value from the reader, returning the deserialized value and final reader position.
     ///
     /// Returns an error on invalid data or insufficient bytes.
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError>
+    fn from_bytes<'b>(buffer: &'b mut Self,reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError>
     where
         Self: Sized;
 

@@ -15,6 +15,7 @@ authors = ["humacss"]
 # No dependencies
 
 [dev-dependencies]
+rstest = "0.26.1"
 criterion = { version = "0.8", features = ["html_reports"] }
 
 [features]

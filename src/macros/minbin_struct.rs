@@ -4,14 +4,14 @@
 /// Example:
 ///
 /// ```rust
-/// #[derive(Debug, PartialEq)]
+/// #[derive(Debug, Default, PartialEq)]
 /// struct ExampleStruct {
 ///     uuid: u128,
 ///     timestamp: i64,
 ///     name: String,
 ///     readings: Vec<String>,
 /// }
-/// 
+///
 /// minbin::minbin_struct! { ExampleStruct [
 ///     self.uuid: u128,
 ///     self.timestamp: i64,
@@ -37,12 +37,10 @@ macro_rules! minbin_struct {
 		        Ok(())
 		    }
 
-		    fn from_bytes(reader: &mut minbin::BytesReader<'a>) -> Result<(Self, usize), minbin::ToFromByteError> {
-		        $(
-                    let $property = reader.read::<$property_type>()?;
-                )+
+		    fn from_bytes(buffer: &mut Self, reader: &mut minbin::BytesReader<'a>) -> Result<usize, minbin::ToFromByteError> {
+		        $(reader.read_into(&mut buffer.$property)?;)+
 
-		        Ok((Self { $($property,)+ }, reader.pos))
+		        Ok(reader.pos)
 		    }
 
 		    fn byte_count(&self) -> usize {

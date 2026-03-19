@@ -6,7 +6,7 @@ fn test_tuple_empty() {
 
     let mut buffer = vec![0u8; expected.byte_count()];
     let write_pos = write_bytes(&expected, &mut buffer).unwrap();
-    let (actual, read_pos): ((), usize) = read_bytes(&buffer[..write_pos]).unwrap();
+    let (actual, read_pos): ((), usize) = read_bytes(<()>::default, &buffer[..write_pos]).unwrap();
 
     assert_eq!(expected.byte_count(), read_pos);
     assert_eq!(expected, actual);
@@ -18,7 +18,7 @@ fn test_tuple_2() {
 
     let mut buffer = vec![0u8; expected.byte_count()];
     let write_pos = write_bytes(&expected, &mut buffer).unwrap();
-    let (actual, read_pos): ((u8, u8), usize) = read_bytes(&buffer[..write_pos]).unwrap();
+    let (actual, read_pos): ((u8, u8), usize) = read_bytes(<(u8, u8)>::default, &buffer[..write_pos]).unwrap();
 
     assert_eq!(expected.byte_count(), read_pos);
     assert_eq!(expected, actual);
@@ -30,7 +30,7 @@ fn test_tuple_12() {
 
     let mut buffer = vec![0u8; expected.byte_count()];
     let write_pos = write_bytes(&expected, &mut buffer).unwrap();
-    let (actual, read_pos): ((u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8), usize) = read_bytes(&buffer[..write_pos]).unwrap();
+    let (actual, read_pos) = read_bytes(<(u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8, u8)>::default, &buffer[..write_pos]).unwrap();
 
     assert_eq!(expected.byte_count(), read_pos);
     assert_eq!(expected, actual);
@@ -42,7 +42,7 @@ fn test_tuple_containers() {
 
     let mut buffer = vec![0u8; expected.byte_count()];
     let write_pos = write_bytes(&expected, &mut buffer).unwrap();
-    let (actual, read_pos): ((Option<u8>, &str), usize) = read_bytes(&buffer[..write_pos]).unwrap();
+    let (actual, read_pos) = read_bytes(|| (Some(0u8), ""), &buffer[..write_pos]).unwrap();
 
     assert_eq!(expected.byte_count(), read_pos);
     assert_eq!(expected, actual);

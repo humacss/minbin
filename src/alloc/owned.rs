@@ -10,9 +10,18 @@ use alloc::vec::Vec;
 
 use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
+/// `Vec<T>` requires `T: Default` because the element count is encoded in the wire
+/// format and only known at deserialization time. Each element is created via
+/// `T::default()` and then overwritten by the deserialized data.
+///
+/// If your element type does not implement `Default`, use `Slice<T>` from the core
+/// module instead — it works with a pre-allocated buffer and has no trait requirements
+/// beyond `ToFromBytes`.
+///
+/// We plan to explore removing the `Default` requirement in a future version.
 impl<'a, T> ToFromBytes<'a> for Vec<T>
 where
-    T: ToFromBytes<'a>,
+    T: ToFromBytes<'a> + Default,
 {
     const MAX_BYTES: usize = 1_048_576; // 1 MiB
 
@@ -30,16 +39,20 @@ where
     }
 
     #[inline(always)]
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let len: u32 = reader.read()?;
+    fn from_bytes(buffer: &mut Vec<T>, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
+        buffer.clear();
 
-        let mut value = Vec::with_capacity(len as usize);
+        let mut len: u32 = 0;
+        reader.read_into(&mut len)?;
 
-        for _i in 0..len {
-            value.push(reader.read()?);
+        buffer.reserve(len as usize);
+
+        for _ in 0..len {
+            buffer.push(T::default());
+            reader.read_into(buffer.last_mut().unwrap())?;
         }
 
-        Ok((value, reader.pos))
+        Ok(reader.pos)
     }
 
     #[inline(always)]
@@ -55,7 +68,7 @@ where
 }
 
 impl<'a> ToFromBytes<'a> for String {
-    const MAX_BYTES: usize = 1_048_576; // 1 MiB
+    const MAX_BYTES: usize = 102_400; // 100 KiB
 
     #[inline(always)]
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
@@ -68,14 +81,18 @@ impl<'a> ToFromBytes<'a> for String {
     }
 
     #[inline(always)]
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let len: u32 = reader.read()?;
+    fn from_bytes(buffer: &mut String, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
+        buffer.clear();
+
+        let mut len: u32 = 0;
+        reader.read_into(&mut len)?;
 
         let bytes = reader.read_bytes(len as usize)?;
 
-        let value = String::from_utf8(bytes.to_vec()).map_err(|_| ToFromByteError::InvalidValue)?;
+        let s = core::str::from_utf8(bytes).map_err(|_| ToFromByteError::InvalidValue)?;
+        buffer.push_str(s);
 
-        Ok((value, reader.pos))
+        Ok(reader.pos)
     }
 
     #[inline(always)]

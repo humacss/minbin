@@ -5,7 +5,12 @@ fn test_option() {
     for expected in [None, Some(u32::MIN), Some(42), Some(u32::MAX)] {
         let mut buffer = vec![0u8; expected.byte_count()];
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
-        let (actual, read_pos): (Option<u32>, usize) = read_bytes(&buffer[..write_pos]).unwrap();
+
+        let init = || match &expected {
+            Some(_) => Some(0u32),
+            None => None,
+        };
+        let (actual, read_pos): (Option<u32>, usize) = read_bytes(init, &buffer[..write_pos]).unwrap();
 
         assert_eq!(expected.byte_count(), read_pos);
         assert_eq!(expected, actual);
@@ -21,7 +26,7 @@ fn test_str() {
 
         assert_eq!(expected.byte_count(), write_pos);
 
-        let (actual, read_pos): (&str, usize) = read_bytes(&buffer).unwrap();
+        let (actual, read_pos): (&str, usize) = read_bytes(<&str>::default, &buffer).unwrap();
 
         assert_eq!(expected.byte_count(), read_pos);
         assert_eq!(expected, actual);

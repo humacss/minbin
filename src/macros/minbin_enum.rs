@@ -1,6 +1,11 @@
 /// Declarative macro that generates a `ToFromBytes` implementation for an enum
 /// using a simple discriminant + payload layout.
 ///
+/// Each variant field requires an initial value expression (after `=`) that is used
+/// as a temporary buffer during deserialization. The value is always overwritten by
+/// the deserialized data, so the exact value does not matter — it only needs to be
+/// a valid instance of the type.
+///
 /// Syntax:
 ///
 /// ```rust
@@ -10,12 +15,12 @@
 ///     Location(i32, i32),
 ///     Log { time: i64, message: String },
 /// }
-/// 
+///
 /// minbin::minbin_enum! { ExampleEnum [
 ///     [0 => Self::Ping],
-///     [1 => Self::Temperature(degrees: i16)],
-///     [2 => Self::Location(lat: i32, lon: i32)],
-///     [3 => Self::Log{ time: i64, message: String }]
+///     [1 => Self::Temperature(degrees: i16 = 0)],
+///     [2 => Self::Location(lat: i32 = 0, lon: i32 = 0)],
+///     [3 => Self::Log{ time: i64 = 0, message: String = String::new() }]
 /// ] }
 /// ```
 ///
@@ -38,10 +43,10 @@ macro_rules! minbin_enum {
 		        Err($crate::ToFromByteError::UnhandledEnumArm)
 		    }
 
-		    fn from_bytes(reader: &mut minbin::BytesReader<'a>) -> Result<(Self, usize), minbin::ToFromByteError> {
-		    	let value = reader.read::<u8>()?;
+		    fn from_bytes(buffer: &mut Self, reader: &mut minbin::BytesReader<'a>) -> Result<usize, minbin::ToFromByteError> {
+		    	let discriminant: u8 = reader.read(u8::default)?;
 
-		    	$($crate::minbin_enum_helper!{@read reader, value, $($arm)+ })+;
+		    	$($crate::minbin_enum_helper!{@read buffer, reader, discriminant, $($arm)+ })+;
 
 				Err($crate::ToFromByteError::UnhandledEnumArm)
 		    }
@@ -61,16 +66,16 @@ macro_rules! minbin_enum {
 ///
 /// Helper for `minbin_enum!` that handles different enum syntax (Unit, Tuple, Struct).
 ///
-/// Without a helper macro we need to rely on either proc macros or a recursive muncher for 
+/// Without a helper macro we need to rely on either proc macros or a recursive muncher for
 /// matching on different syntax.
 ///
-/// Since we focus on auditability it is important that the macro is easy to read. 
-/// Munchers are hard to debug, maintain and can result in slower compile times. Proc macros add 
+/// Since we focus on auditability it is important that the macro is easy to read.
+/// Munchers are hard to debug, maintain and can result in slower compile times. Proc macros add
 /// too much magic and complicates the crate, we keep it simple by using only declarative macros.
 ///
-/// Unfortunately declarative macros are not well suited for generating match clauses so we use if 
-/// clauses instead. This has some performance implications since conditions are evaluated 
-/// separately, but macro simplicity takes priority. 
+/// Unfortunately declarative macros are not well suited for generating match clauses so we use if
+/// clauses instead. This has some performance implications since conditions are evaluated
+/// separately, but macro simplicity takes priority.
 ///
 /// If you need exhaustive matchers or better performance you should implement the trait manually.
 #[macro_export]
@@ -79,6 +84,7 @@ macro_rules! minbin_enum_helper {
 		$discriminant
 	};
 
+	// --- @write: Unit variant ---
 	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident) => {
 		if let Self::$arm_name = $self {
 			$writer.write::<u8>(&$discriminant)?;
@@ -87,7 +93,8 @@ macro_rules! minbin_enum_helper {
 		}
 	};
 
-	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty),*)) => {
+	// --- @write: Tuple variant ---
+	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty = $default:expr),*)) => {
 		if let Self::$arm_name($($item_name),*) = $self {
 			$writer.write::<u8>(&$discriminant)?;
 
@@ -97,7 +104,8 @@ macro_rules! minbin_enum_helper {
 		}
 	};
 
-	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty),*}) => {
+	// --- @write: Struct variant ---
+	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty = $default:expr),*}) => {
 		if let Self::$arm_name{$($item_name),*} = $self {
 			$writer.write::<u8>(&$discriminant)?;
 
@@ -107,41 +115,54 @@ macro_rules! minbin_enum_helper {
 		}
 	};
 
-	(@read $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident) => {
+	// --- @read: Unit variant ---
+	(@read $buffer:expr, $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident) => {
 		if $discriminant == $value {
-			return Ok((Self::$arm_name, $reader.pos));
+			*$buffer = Self::$arm_name;
+			return Ok($reader.pos);
 		}
 	};
 
-	(@read $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty),*)) => {
+	// --- @read: Tuple variant ---
+	// The default expression is used as a temporary buffer for deserialization.
+	// It is always overwritten by the deserialized data.
+	(@read $buffer:expr, $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty = $default:expr),*)) => {
 		if $discriminant == $value {
-			$(let $item_name = $reader.read::<$item_type>()?;)*
+			$(let $item_name: $item_type = $reader.read(|| $default)?;)*
 
-			return Ok((Self::$arm_name($($item_name),*), $reader.pos));
+			*$buffer = Self::$arm_name($($item_name),*);
+			return Ok($reader.pos);
 		}
 	};
 
-	(@read $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty),*}) => {
+	// --- @read: Struct variant ---
+	// The default expression is used as a temporary buffer for deserialization.
+	// It is always overwritten by the deserialized data.
+	(@read $buffer:expr, $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty = $default:expr),*}) => {
 		if $discriminant == $value {
-			$(let $item_name = $reader.read::<$item_type>()?;)*
+			$(let $item_name: $item_type = $reader.read(|| $default)?;)*
 
-			return Ok((Self::$arm_name{$($item_name),*}, $reader.pos));
+			*$buffer = Self::$arm_name{$($item_name),*};
+			return Ok($reader.pos);
 		}
 	};
 
+	// --- @byte_count: Unit variant ---
 	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident) => {
 		if let Self::$arm_name = $self {
 			$count += 0;
 		}
 	};
 
-	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item:ty),*)) => {
+	// --- @byte_count: Tuple variant ---
+	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item:ty = $default:expr),*)) => {
 		if let Self::$arm_name($($item_name),*) = $self {
 			$($count += $item_name.byte_count();)*
 		}
 	};
 
-	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item:ty),*}) => {
+	// --- @byte_count: Struct variant ---
+	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item:ty = $default:expr),*}) => {
 		if let Self::$arm_name{$($item_name),*} = $self {
 			$($count += $item_name.byte_count();)*
 		}

@@ -1,6 +1,6 @@
 use minbin::{from_bytes, to_bytes};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 struct ExampleStruct {
     uuid: u128,
     timestamp: i64,
@@ -23,6 +23,6 @@ fn main() {
         readings: vec!["Reading1".to_string(), "Reading2".to_string()],
     };
     let bytes = to_bytes(&expected).unwrap();
-    let actual = from_bytes(&bytes).unwrap();
+    let actual = from_bytes(ExampleStruct::default, &bytes).unwrap();
     assert_eq!(expected, actual);
 }

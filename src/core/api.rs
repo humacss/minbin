@@ -4,29 +4,53 @@ use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 ///
 /// Deserializes a complete value from a byte slice.
 ///
+/// The `init` closure constructs the initial value that gets read into.
+/// This is lazy — the closure is only called once, right before reading.
+///
 /// Fails with `TrailingBytes` if the input contains extra data after the value.
 /// This is intentional, silently ignoring trailing bytes is a common source of errors and security bugs.
 ///
 /// Use this when you expect exactly one message per buffer (most common case).
 #[inline]
-pub fn from_bytes<T>(bytes: &[u8]) -> Result<T, ToFromByteError>
+pub fn from_bytes<'a, T>(init: impl FnOnce() -> T, bytes: &'a [u8]) -> Result<T, ToFromByteError>
 where
-    T: for<'a> ToFromBytes<'a>,
+    T: ToFromBytes<'a>,
 {
     if bytes.len() > T::MAX_BYTES {
         return Err(ToFromByteError::MaxBytesExceeded);
     }
 
-    let (value, pos) = read_bytes(bytes)?;
+    let mut value = init();
+    bytes_into(&mut value, bytes)?;
+
+    Ok(value)
+}
+
+/// Buffer-fill variant of `from_bytes`.
+///
+/// Deserializes into an existing buffer and checks for trailing bytes.
+///
+/// Use this when you want to provide your own buffer instead of relying on `Default`.
+pub fn bytes_into<'a, T: ToFromBytes<'a>>(buffer: &mut T, bytes: &'a [u8]) -> Result<(), ToFromByteError> {
+    if bytes.len() > T::MAX_BYTES {
+        return Err(ToFromByteError::MaxBytesExceeded);
+    }
+
+    let pos = read_into(buffer, bytes)?;
 
     if pos < bytes.len() {
         return Err(ToFromByteError::TrailingBytes);
     }
 
-    Ok(value)
+    Ok(())
 }
 
-/// Low-level read: deserialize a value and return how many bytes were consumed.
+/// Convenience function.
+///
+/// Low-level read: deserialize a value and return it along with how many bytes were consumed.
+///
+/// The `init` closure constructs the initial value that gets read into.
+/// This is lazy — the closure is only called once, right before reading.
 ///
 /// Does NOT check for trailing bytes. Use this when:
 /// - You're parsing multiple messages from one buffer
@@ -36,17 +60,35 @@ where
 /// Do NOT use this function without confirming that the reader.pos is at the correct position afterwards.
 /// Silently ignoring trailing bytes is a common source of errors and security bugs.
 #[inline]
-pub fn read_bytes<'a, T: ToFromBytes<'a>>(buffer: &'a [u8]) -> Result<(T, usize), ToFromByteError> {
-    let mut reader = BytesReader::new(buffer);
+pub fn read_bytes<'a, T>(init: impl FnOnce() -> T, bytes: &'a [u8]) -> Result<(T, usize), ToFromByteError>
+where
+    T: ToFromBytes<'a>,
+{
+    let mut value = init();
+    let pos = read_into(&mut value, bytes)?;
+    Ok((value, pos))
+}
 
-    let value = reader.read()?;
+/// Buffer-fill variant of `read_bytes`.
+///
+/// Deserializes into an existing buffer and returns how many bytes were consumed.
+///
+/// Does NOT check for trailing bytes.
+///
+/// The buffer's mutable borrow is decoupled from the data lifetime,
+/// allowing types like `Slice<'a, StrLen32<'a>>` to work without
+/// the `&'a mut Thing<'a>` anti-pattern.
+#[inline]
+pub fn read_into<'a, T: ToFromBytes<'a>>(buffer: &mut T, bytes: &'a [u8]) -> Result<usize, ToFromByteError> {
+    let mut reader = BytesReader::new(bytes);
 
-    // We already did the work but should drop the buffer as soon as possible
+    reader.read_into(buffer)?;
+
     if reader.pos > T::MAX_BYTES {
         return Err(ToFromByteError::MaxBytesExceeded);
     }
 
-    Ok((value, reader.pos))
+    Ok(reader.pos)
 }
 
 /// Serialize a value into an existing buffer.

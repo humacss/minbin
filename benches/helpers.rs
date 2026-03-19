@@ -5,7 +5,7 @@ use minbin::{read_bytes, write_bytes, BytesReader, BytesWriter, ToFromByteError,
 
 pub fn bench_value<T>(runner: &mut Criterion, name: &str, value: T)
 where
-    T: for<'a> ToFromBytes<'a>,
+    T: for<'a> ToFromBytes<'a> + Default,
 {
     let mut group = runner.benchmark_group(name);
 
@@ -26,7 +26,7 @@ where
         b.iter_batched(
             || bytes.clone(),
             |bytes| {
-                let (value, pos) = read_bytes::<T>(black_box(&bytes)).unwrap();
+                let (value, pos) = read_bytes(T::default, black_box(&bytes)).unwrap();
                 black_box(value);
                 black_box(pos);
             },
@@ -37,6 +37,7 @@ where
     group.finish();
 }
 
+#[derive(Default)]
 pub struct BenchStruct {
     pub uuid: u128,
     pub timestamp: i64,
@@ -56,10 +57,13 @@ impl<'a> ToFromBytes<'a> for BenchStruct {
         Ok(())
     }
 
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let (uuid, timestamp, name, readings) = reader.read()?;
+    fn from_bytes(buffer: &mut Self, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
+        reader.read_into(&mut buffer.uuid)?;
+        reader.read_into(&mut buffer.timestamp)?;
+        reader.read_into(&mut buffer.name)?;
+        reader.read_into(&mut buffer.readings)?;
 
-        Ok((BenchStruct { uuid, timestamp, name, readings }, reader.pos))
+        Ok(reader.pos)
     }
 
     fn byte_count(&self) -> usize {
