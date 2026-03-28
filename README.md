@@ -243,4 +243,4 @@ cargo expand --example macro_struct
 
 ## Real-World Usage
 
-Currently used in Arcanex, where all event streams are consumed using `contime`, with state derived from timestamped events and support for prediction, reconciliation, and querying across time.
+Currently used in Arcanex, a tickless event-driven multiplayer game engine, where server processes and clients exchange events using `minbin`.
