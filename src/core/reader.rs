@@ -26,20 +26,31 @@ impl<'a> BytesReader<'a> {
     ///
     /// Reads a complete value, advancing the cursor.
     ///
-    /// Equivalent to calling `T::from_bytes(self)` and discarding the returned position.
+    /// The `init` closure constructs the initial value that gets read into.
+    /// This is lazy — the closure is only called once, right before reading.
+    ///
+    /// Use `read_into` if you already have a buffer to read into.
+    #[inline(always)]
+    pub fn read<T: ToFromBytes<'a>>(&mut self, init: impl FnOnce() -> T) -> Result<T, ToFromByteError> {
+        let mut value = init();
+        self.read_into(&mut value)?;
+        Ok(value)
+    }
+
+    /// Reads a complete value into an existing buffer, advancing the cursor.
     ///
     /// Use only when you don't need to know how many bytes were consumed.
     #[inline(always)]
-    pub fn read<T: ToFromBytes<'a>>(&mut self) -> Result<T, ToFromByteError> {
+    pub fn read_into<T: ToFromBytes<'a>>(&mut self, buffer: &mut T) -> Result<(), ToFromByteError> {
         let start_pos = self.pos;
 
-        let (value, _pos) = T::from_bytes(self)?;
+        let _pos = T::from_bytes(buffer, self)?;
 
         if self.pos - start_pos > T::MAX_BYTES {
             return Err(ToFromByteError::MaxBytesExceeded);
         }
 
-        Ok(value)
+        Ok(())
     }
 
     /// Read exactly `byte_count` raw bytes, advancing the cursor.

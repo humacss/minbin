@@ -50,9 +50,10 @@ impl<'a> BytesWriter<'a> {
 
         self.assert_enough_bytes(byte_count)?;
 
+        // not in place
         self.data[self.pos..self.pos + byte_count].copy_from_slice(src);
 
-        self.pos += src.len();
+        self.pos += byte_count;
 
         Ok(())
     }

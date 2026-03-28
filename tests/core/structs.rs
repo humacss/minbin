@@ -1,5 +1,6 @@
 use minbin::{read_bytes, write_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
+#[derive(Default)]
 struct ExampleStruct<'a> {
     uuid: u128,
     timestamp: i64,
@@ -16,10 +17,13 @@ impl<'a> ToFromBytes<'a> for ExampleStruct<'a> {
         Ok(())
     }
 
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let (uuid, timestamp, name, reading): (u128, i64, &'a str, u16) = reader.read()?;
+    fn from_bytes(buffer: &mut Self, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
+        reader.read_into(&mut buffer.uuid)?;
+        reader.read_into(&mut buffer.timestamp)?;
+        reader.read_into(&mut buffer.name)?;
+        reader.read_into(&mut buffer.reading)?;
 
-        Ok((ExampleStruct { uuid, timestamp, name, reading }, reader.pos))
+        Ok(reader.pos)
     }
 
     fn byte_count(&self) -> usize {
@@ -36,7 +40,7 @@ fn test_struct_stack() {
 
     assert_eq!(expected.byte_count(), write_pos);
 
-    let (actual, read_pos): (ExampleStruct, usize) = read_bytes(&buffer).unwrap();
+    let (actual, read_pos): (ExampleStruct, usize) = read_bytes(ExampleStruct::default, &buffer).unwrap();
 
     assert_eq!(expected.byte_count(), read_pos);
     assert_eq!(expected.uuid, actual.uuid);
@@ -54,7 +58,7 @@ fn test_struct_heap() {
 
     assert_eq!(expected.byte_count(), write_pos);
 
-    let (actual, read_pos): (ExampleStruct, usize) = read_bytes(&buffer).unwrap();
+    let (actual, read_pos): (ExampleStruct, usize) = read_bytes(ExampleStruct::default, &buffer).unwrap();
 
     assert_eq!(expected.byte_count(), read_pos);
     assert_eq!(expected.uuid, actual.uuid);

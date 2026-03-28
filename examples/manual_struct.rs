@@ -8,6 +8,13 @@ struct ExampleStruct {
     readings: Vec<String>,
 }
 
+#[allow(clippy::derivable_impls)]
+impl Default for ExampleStruct {
+    fn default() -> Self {
+        Self { uuid: 0, timestamp: 0, name: String::new(), readings: Vec::new() }
+    }
+}
+
 impl<'a> ToFromBytes<'a> for ExampleStruct {
     const MAX_BYTES: usize = 1_048_576;
 
@@ -16,22 +23,21 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
         writer.write::<i64>(&self.timestamp)?;
         writer.write::<String>(&self.name)?;
         writer.write::<Vec<String>>(&self.readings)?;
-        
+
         Ok(())
     }
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let uuid = reader.read::<u128>()?;
-        let timestamp = reader.read::<i64>()?;
-        let name = reader.read::<String>()?;
-        let readings = reader.read::<Vec<String>>()?;
-        
-        Ok((Self { uuid, timestamp, name, readings }, reader.pos))
+
+    fn from_bytes(buffer: &mut Self, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
+        reader.read_into(&mut buffer.uuid)?;
+        reader.read_into(&mut buffer.timestamp)?;
+        reader.read_into(&mut buffer.name)?;
+        reader.read_into(&mut buffer.readings)?;
+
+        Ok(reader.pos)
     }
+
     fn byte_count(&self) -> usize {
-        self.uuid.byte_count() + 
-        self.timestamp.byte_count() + 
-        self.name.byte_count() + 
-        self.readings.byte_count()
+        self.uuid.byte_count() + self.timestamp.byte_count() + self.name.byte_count() + self.readings.byte_count()
     }
 }
 
@@ -43,6 +49,6 @@ fn main() {
         readings: vec!["Reading1".to_string(), "Reading2".to_string()],
     };
     let bytes = to_bytes(&expected).unwrap();
-    let actual = from_bytes(&bytes).unwrap();
+    let actual = from_bytes(ExampleStruct::default, &bytes).unwrap();
     assert_eq!(expected, actual);
 }

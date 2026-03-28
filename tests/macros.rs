@@ -1,12 +1,16 @@
 use minbin::{from_bytes, minbin_enum, minbin_struct, to_bytes};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 enum ExampleEnum {
+    #[default]
     Invalid,
     Ping,
     Temperature(i16),
     Location(i32, i32),
-    Log { time: i64, message: String },
+    Log {
+        time: i64,
+        message: String,
+    },
 
     EmptyTuple(),
     EmptyTuple2(()),
@@ -15,15 +19,15 @@ enum ExampleEnum {
 
 minbin_enum! { ExampleEnum [
     [0 => Self::Ping],
-    [1 => Self::Temperature(degrees: i16)],
-    [2 => Self::Location(lat: i32, lon: i32)],
-    [3 => Self::Log{ time: i64, message: String }],
+    [1 => Self::Temperature(degrees: i16 = 0)],
+    [2 => Self::Location(lat: i32 = 0, lon: i32 = 0)],
+    [3 => Self::Log{ time: i64 = 0, message: String = String::new() }],
     [4 => Self::EmptyTuple()],
-    [5 => Self::EmptyTuple2(tuple: ())],
+    [5 => Self::EmptyTuple2(tuple: () = ())],
     [6 => Self::EmptyStruct{}],
 ] }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 struct ExampleStruct {
     uuid: u128,
     timestamp: i64,
@@ -55,7 +59,7 @@ fn test_struct_macro() {
         ],
     };
     let bytes = to_bytes(&expected).unwrap();
-    let actual: ExampleStruct = from_bytes(&bytes).unwrap();
+    let actual: ExampleStruct = from_bytes(ExampleStruct::default, &bytes).unwrap();
 
     assert_eq!(expected, actual);
 }
@@ -63,16 +67,16 @@ fn test_struct_macro() {
 #[test]
 fn test_enum_macro() {
     let expected = ExampleEnum::Ping;
-    assert_eq!(expected, from_bytes(&to_bytes(&expected).unwrap()).unwrap());
+    assert_eq!(expected, from_bytes(ExampleEnum::default, &to_bytes(&expected).unwrap()).unwrap());
 
     let expected = ExampleEnum::Temperature(30);
-    assert_eq!(expected, from_bytes(&to_bytes(&expected).unwrap()).unwrap());
+    assert_eq!(expected, from_bytes(ExampleEnum::default, &to_bytes(&expected).unwrap()).unwrap());
 
     let expected = ExampleEnum::Location(123_000, 124_000);
-    assert_eq!(expected, from_bytes(&to_bytes(&expected).unwrap()).unwrap());
+    assert_eq!(expected, from_bytes(ExampleEnum::default, &to_bytes(&expected).unwrap()).unwrap());
 
     let expected = ExampleEnum::Log { time: 42, message: "Message".to_string() };
-    assert_eq!(expected, from_bytes(&to_bytes(&expected).unwrap()).unwrap());
+    assert_eq!(expected, from_bytes(ExampleEnum::default, &to_bytes(&expected).unwrap()).unwrap());
 }
 
 #[test]
@@ -80,6 +84,6 @@ fn test_macros_error() {
     let result = to_bytes(&ExampleEnum::Invalid);
     assert!(result.is_err());
 
-    let result = from_bytes::<ExampleEnum>(&[u8::MAX, u8::MAX, u8::MAX, u8::MAX]);
+    let result = from_bytes::<ExampleEnum>(ExampleEnum::default, &[u8::MAX, u8::MAX, u8::MAX, u8::MAX]);
     assert!(result.is_err());
 }

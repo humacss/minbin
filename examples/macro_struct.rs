@@ -8,6 +8,13 @@ struct ExampleStruct {
     readings: Vec<String>,
 }
 
+#[allow(clippy::derivable_impls)]
+impl Default for ExampleStruct {
+    fn default() -> Self {
+        Self { uuid: 0, timestamp: 0, name: String::new(), readings: Vec::new() }
+    }
+}
+
 minbin::minbin_struct! { ExampleStruct [
     self.uuid: u128,
     self.timestamp: i64,
@@ -23,6 +30,6 @@ fn main() {
         readings: vec!["Reading1".to_string(), "Reading2".to_string()],
     };
     let bytes = to_bytes(&expected).unwrap();
-    let actual = from_bytes(&bytes).unwrap();
+    let actual = from_bytes(ExampleStruct::default, &bytes).unwrap();
     assert_eq!(expected, actual);
 }

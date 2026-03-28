@@ -1,3 +1,10 @@
+//! ToFromBytes trait implementations for container types.
+
+/// Slice wrapper for no_std serialization.
+pub mod slice;
+/// Borrowed string wrapper for no_std serialization.
+pub mod str;
+
 use crate::{to_from_bytes_tuple, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
 impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
@@ -20,19 +27,33 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
         }
     }
 
+    /// Deserializes an `Option<T>` from the reader.
+    ///
+    /// When the wire data contains `Some`, the buffer must already be `Some(value)` so that
+    /// the existing value can be read into. If the buffer is `None` but the wire has `Some`,
+    /// this returns `InvalidValue`.
+    ///
+    /// Use the convenience functions with an init closure to handle this automatically:
+    /// ```ignore
+    /// let opt: Option<MyType> = from_bytes(|| Some(MyType::new(..)), &bytes)?;
+    /// ```
     #[inline(always)]
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let option_byte: u8 = reader.read()?;
+    fn from_bytes(buffer: &mut Option<T>, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
+        let mut tag: u8 = 0;
+        reader.read_into(&mut tag)?;
 
-        match option_byte {
-            0 => Ok((None, reader.pos)),
+        match tag {
+            0 => *buffer = None,
             1 => {
-                let value = reader.read()?;
-
-                Ok((Some(value), reader.pos))
+                match buffer.as_mut() {
+                    Some(inner) => reader.read_into(inner)?,
+                    None => return Err(ToFromByteError::InvalidValue),
+                };
             }
-            _ => Err(ToFromByteError::InvalidValue),
+            _ => return Err(ToFromByteError::InvalidValue),
         }
+
+        Ok(reader.pos)
     }
 
     #[inline(always)]
@@ -58,14 +79,15 @@ impl<'a> ToFromBytes<'a> for &'a str {
     }
 
     #[inline(always)]
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let len: u32 = reader.read()?;
+    fn from_bytes(buffer: &mut &'a str, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
+        let mut len: u32 = 0;
+        reader.read_into(&mut len)?;
 
         let bytes = reader.read_bytes(len as usize)?;
 
-        let value = core::str::from_utf8(bytes).map_err(|_| ToFromByteError::InvalidValue)?;
+        *buffer = core::str::from_utf8(bytes).map_err(|_| ToFromByteError::InvalidValue)?;
 
-        Ok((value, reader.pos))
+        Ok(reader.pos)
     }
 
     #[inline(always)]

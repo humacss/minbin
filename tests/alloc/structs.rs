@@ -1,5 +1,6 @@
 use minbin::{from_bytes, to_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
+#[derive(Default)]
 struct ExampleStruct {
     uuid: u128,
     timestamp: i64,
@@ -19,10 +20,13 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
         Ok(())
     }
 
-    fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-        let (uuid, timestamp, name, readings): (u128, i64, String, Vec<u16>) = reader.read()?;
+    fn from_bytes(buffer: &mut Self, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
+        reader.read_into(&mut buffer.uuid)?;
+        reader.read_into(&mut buffer.timestamp)?;
+        reader.read_into(&mut buffer.name)?;
+        reader.read_into(&mut buffer.readings)?;
 
-        Ok((ExampleStruct { uuid, timestamp, name, readings }, reader.pos))
+        Ok(reader.pos)
     }
 
     fn byte_count(&self) -> usize {
@@ -35,7 +39,7 @@ fn test_struct() {
     let expected = ExampleStruct { uuid: 0, timestamp: 1, name: "example".to_string(), readings: vec![1, 2, 3, 4] };
 
     let bytes = to_bytes(&expected).unwrap();
-    let actual: ExampleStruct = from_bytes(&bytes).unwrap();
+    let actual: ExampleStruct = from_bytes(ExampleStruct::default, &bytes).unwrap();
 
     assert_eq!(expected.uuid, actual.uuid);
     assert_eq!(expected.timestamp, actual.timestamp);

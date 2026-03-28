@@ -14,14 +14,16 @@ impl ToFromBytes<'_> for bool {
     }
 
     #[inline(always)]
-    fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
+    fn from_bytes(buffer: &mut bool, reader: &mut BytesReader<'_>) -> Result<usize, ToFromByteError> {
         let byte = reader.read_bytes(1)?[0];
 
         match byte {
-            0 => Ok((false, reader.pos)),
-            1 => Ok((true, reader.pos)),
-            _ => Err(ToFromByteError::InvalidValue),
+            0 => *buffer = false,
+            1 => *buffer = true,
+            _ => return Err(ToFromByteError::InvalidValue),
         }
+
+        Ok(reader.pos)
     }
 
     #[inline(always)]

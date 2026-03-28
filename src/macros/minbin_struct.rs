@@ -11,7 +11,18 @@
 ///     name: String,
 ///     readings: Vec<String>,
 /// }
-/// 
+///
+/// impl Default for ExampleStruct {
+///     fn default() -> Self {
+///         Self {
+///             uuid: 0,
+///             timestamp: 0,
+///             name: String::new(),
+///             readings: Vec::new(),
+///         }
+///     }
+/// }
+///
 /// minbin::minbin_struct! { ExampleStruct [
 ///     self.uuid: u128,
 ///     self.timestamp: i64,
@@ -21,6 +32,7 @@
 /// ```
 ///
 /// Generated code is straightforward field-by-field read/write.
+/// The field list also defines the wire order, so reordering fields is a wire-format change.
 ///
 /// For more complex structs you should write the `ToFromBytes` implementation manually.
 #[macro_export]
@@ -37,12 +49,10 @@ macro_rules! minbin_struct {
 		        Ok(())
 		    }
 
-		    fn from_bytes(reader: &mut minbin::BytesReader<'a>) -> Result<(Self, usize), minbin::ToFromByteError> {
-		        $(
-                    let $property = reader.read::<$property_type>()?;
-                )+
+		    fn from_bytes(buffer: &mut Self, reader: &mut minbin::BytesReader<'a>) -> Result<usize, minbin::ToFromByteError> {
+		        $(reader.read_into(&mut buffer.$property)?;)+
 
-		        Ok((Self { $($property,)+ }, reader.pos))
+		        Ok(reader.pos)
 		    }
 
 		    fn byte_count(&self) -> usize {

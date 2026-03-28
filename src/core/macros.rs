@@ -1,4 +1,3 @@
-
 /// This is an internal macro not intended for use outside of this crate.
 ///
 /// Generates `ToFromBytes` implementations for fixed-size integers (u8–u128, i8–i128).
@@ -20,11 +19,13 @@ macro_rules! to_from_bytes_int {
             }
 
             #[inline(always)]
-            fn from_bytes(reader: &mut BytesReader<'_>) -> Result<(Self, usize), ToFromByteError> {
+            fn from_bytes(buffer: &mut $int, reader: &mut BytesReader<'_>) -> Result<usize, ToFromByteError> {
                 let bytes = reader.read_bytes($byte_count)?;
                 let bytes = bytes.try_into().map_err(|_| ToFromByteError::NotEnoughBytes)?;
 
-                Ok((<$int>::from_be_bytes(bytes), reader.pos))
+                *buffer = <$int>::from_be_bytes(bytes);
+
+                Ok(reader.pos)
             }
 
             #[inline(always)]
@@ -60,11 +61,11 @@ macro_rules! to_from_bytes_tuple {
             }
 
             #[inline(always)]
-            fn from_bytes(reader: &mut BytesReader<'a>) -> Result<(Self, usize), ToFromByteError> {
-                Ok((
-                    ($(reader.read::<$name>()?,)*),
-                    reader.pos
-                ))
+            #[allow(unused_variables)]
+            fn from_bytes(buffer: &mut Self, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
+                let ($($name,)*) = buffer;
+                $(reader.read_into($name)?;)*
+                Ok(reader.pos)
             }
 
             #[inline(always)]

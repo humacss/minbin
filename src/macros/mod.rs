@@ -2,7 +2,7 @@
 //! `ToFromBytes` for simple structs and enums.
 //!
 //! These macros are **optional**.
-//! You can (and sometimes should) write the implementations by hand for full 
+//! You can (and sometimes should) write the implementations by hand for full
 //! control and easier debugging.
 
 /// Macro for implementing `Enum`s.
