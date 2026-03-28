@@ -240,3 +240,7 @@ cargo expand --example macro_struct
 - optional little-endian feature (currently only big-endian is supported)
 - &[T] support (for primitive types without `unsafe`)
 - more examples showcasing common use-cases (versioning, server)
+
+## Real-World Usage
+
+Currently used in Arcanex, where all event streams are consumed using `contime`, with state derived from timestamped events and support for prediction, reconciliation, and querying across time.
