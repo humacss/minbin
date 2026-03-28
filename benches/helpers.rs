@@ -11,7 +11,7 @@ where
 
     let size = value.byte_count();
 
-    group.bench_function(&format!("{}_serialize", name), |bencher| {
+    group.bench_function(format!("{}_serialize", name), |bencher| {
         bencher.iter_batched(
             || vec![0u8; size],
             |mut buffer| write_bytes(black_box(&value), black_box(&mut buffer)),
@@ -22,7 +22,7 @@ where
     let mut bytes = vec![0u8; size];
     write_bytes(&value, &mut bytes).unwrap();
 
-    group.bench_function(&format!("{}_deserialize", name), |b| {
+    group.bench_function(format!("{}_deserialize", name), |b| {
         b.iter_batched(
             || bytes.clone(),
             |bytes| {

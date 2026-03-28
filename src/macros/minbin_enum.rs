@@ -6,6 +6,10 @@
 /// the deserialized data, so the exact value does not matter — it only needs to be
 /// a valid instance of the type.
 ///
+/// This macro is best for small, stable enums with an obvious `u8` discriminant mapping.
+/// If you need a different layout, custom validation, or more control over forward compatibility,
+/// write the `ToFromBytes` implementation manually instead.
+///
 /// Syntax:
 ///
 /// ```rust
@@ -28,7 +32,7 @@
 /// - Uses `u8` discriminant (max 255 variants)
 /// - Generates `if let` chains instead of `match` (to keep macro simpler)
 /// - Returns `UnhandledEnumArm` when the discriminant is unknown
-/// - Requires unit tests to catch discriminant duplicates and unhandled arms
+/// - Requires unit tests to catch discriminant duplicates
 ///
 /// For more complex enums you should write the `ToFromBytes` implementation manually.
 #[macro_export]

@@ -6,10 +6,7 @@ fn test_option() {
         let mut buffer = vec![0u8; expected.byte_count()];
         let write_pos = write_bytes(&expected, &mut buffer).unwrap();
 
-        let init = || match &expected {
-            Some(_) => Some(0u32),
-            None => None,
-        };
+        let init = || expected.as_ref().map(|_| 0u32);
         let (actual, read_pos): (Option<u32>, usize) = read_bytes(init, &buffer[..write_pos]).unwrap();
 
         assert_eq!(expected.byte_count(), read_pos);

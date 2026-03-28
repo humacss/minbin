@@ -6,10 +6,9 @@ fn test_tuple_empty() {
 
     let mut buffer = vec![0u8; expected.byte_count()];
     let write_pos = write_bytes(&expected, &mut buffer).unwrap();
-    let (actual, read_pos): ((), usize) = read_bytes(<()>::default, &buffer[..write_pos]).unwrap();
+    let (_, read_pos): ((), usize) = read_bytes(<()>::default, &buffer[..write_pos]).unwrap();
 
     assert_eq!(expected.byte_count(), read_pos);
-    assert_eq!(expected, actual);
 }
 
 #[test]

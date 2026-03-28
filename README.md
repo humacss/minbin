@@ -21,23 +21,40 @@ Install the crate:
 ```
 cargo add minbin
 ```
-Now use the helper macro to implement the [`ToFromBytes`](https://github.com/humacss/minbin/tree/main/src/core/to_from_bytes.rs) trait for your structs and enums.
+For most projects, start with the default alloc-enabled path:
+- implement [`ToFromBytes`](https://github.com/humacss/minbin/tree/main/src/core/to_from_bytes.rs) manually or with the helper macros
+- call `to_bytes(&value)` to serialize
+- call `from_bytes(Type::default, &bytes)` to deserialize
+
+The `alloc` feature is enabled by default, so `String`, `Vec<T>`, and `to_bytes` are available out of the box.
+If you are in `no_std` or want to avoid allocation, use `write_bytes` / `read_into` with your own buffers instead.
+
+For simple structs and enums, the macros are the easiest place to start.
+For anything non-trivial, manual implementations are straightforward and give you full control over the wire format.
 
 ### Enum example
 ```rust
+use minbin::{from_bytes, to_bytes};
+
 #[derive(Debug, PartialEq)]
 enum ExampleEnum {
     Ping,
     Temperature(i16),
     Location(i32, i32),
-    Log{ time: i64, message: String }
+    Log { time: i64, message: String }
+}
+
+impl Default for ExampleEnum {
+    fn default() -> Self {
+        ExampleEnum::Ping
+    }
 }
 
 minbin::minbin_enum!{ ExampleEnum [
     [0 => Self::Ping],
-    [1 => Self::Temperature(degrees: i16)],
-    [2 => Self::Location(lat: i32, lon: i32)],
-    [3 => Self::Log{ time: i64, message: String }]
+    [1 => Self::Temperature(degrees: i16 = 0)],
+    [2 => Self::Location(lat: i32 = 0, lon: i32 = 0)],
+    [3 => Self::Log{ time: i64 = 0, message: String = String::new() }]
 ] }
 
 #[cfg(test)]
@@ -55,7 +72,7 @@ mod tests {
 
         for expected in cases {
             let bytes = to_bytes(&expected).unwrap();
-            let decoded = from_bytes(&bytes).unwrap();
+            let decoded = from_bytes(ExampleEnum::default, &bytes).unwrap();
             assert_eq!(expected, decoded);
         }
     }
@@ -65,26 +82,37 @@ mod tests {
 
 ### Struct example
 ```rust
+use minbin::{from_bytes, to_bytes};
+
 #[derive(Debug, PartialEq)]
 struct ExampleStruct {
     uuid: u128,
     timestamp: i64,
     name: String,
-    readings: Vec<ExampleEnum>,
+    readings: Vec<String>,
+}
+
+impl Default for ExampleStruct {
+    fn default() -> Self {
+        Self {
+            uuid: 0,
+            timestamp: 0,
+            name: String::new(),
+            readings: Vec::new(),
+        }
+    }
 }
 
 minbin::minbin_struct!{ ExampleStruct [
     self.uuid: u128,
     self.timestamp: i64,
     self.name: String,
-    self.readings: Vec<ExampleEnum>
+    self.readings: Vec<String>
 ] }
 
 #[cfg(test)]
 mod tests {    
     use super::*;
-
-    use minbin::{to_bytes, from_bytes};
 
     #[test]
     fn test_struct_roundtrip() {
@@ -92,16 +120,22 @@ mod tests {
             uuid: u128::MAX,
             timestamp: i64::MAX,
             name: "Name".to_string(),
-            readings: vec![ExampleEnum::Ping],
+            readings: vec!["Reading1".to_string()],
         };
         let bytes = to_bytes(&expected).unwrap();
-        let actual = from_bytes(&bytes).unwrap();
+        let actual = from_bytes(ExampleStruct::default, &bytes).unwrap();
         assert_eq!(expected, actual);
     }
 }
 ```
 
 You can also implement the trait [manually](#manual-implementations) for complex cases not supported by the macro. The macro is just a convenience that helps you reduce boilerplate, manual implementations are straightforward and encouraged.
+
+### How to start
+
+- If you want the shortest path to working code, start with `minbin_struct!` / `minbin_enum!`
+- If you need custom validation or more control over the wire format, implement `ToFromBytes` manually
+- If you do not want allocation, use `write_bytes` and `read_into` instead of `to_bytes`
 
 ## Why yet another serializer?
 Many Rust projects need to turn a struct into bytes and back at some point.
@@ -178,8 +212,8 @@ That's on one core. This is usually fast enough that it won't be your bottleneck
 Manual implementations are not difficult, it's just a lot of unnecessary boilerplate for very simple cases.
 
 See the examples here:
-- [Structs](https://github.com/humacss/minbin/tree/main/examples/manual-struct)
-- [Enum](https://github.com/humacss/minbin/tree/main/examples/manual-enum)
+- [Struct](https://github.com/humacss/minbin/tree/main/examples/manual_struct.rs)
+- [Enum](https://github.com/humacss/minbin/tree/main/examples/manual_enum.rs)
 
 For trivial cases the `minbin_struct!` and `minbin_enum!` macros work well. 
 For anything complicated manual implementation is recommended. 
@@ -192,12 +226,12 @@ Install cargo-expand on your system:
 cargo install cargo-expand              
 ```
 
-Output the code generated from [examples/macro-enum](https://github.com/humacss/minbin/tree/main/examples/macro-enum.rs)
+Output the code generated from [examples/macro_enum](https://github.com/humacss/minbin/tree/main/examples/macro_enum.rs)
 ```bash
 cargo expand --example macro_enum    
 ```
 
-Output the code generated from [examples/macro-struct](https://github.com/humacss/minbin/tree/main/examples/macro-struct.rs)
+Output the code generated from [examples/macro_struct](https://github.com/humacss/minbin/tree/main/examples/macro_struct.rs)
 ```bash
 cargo expand --example macro_struct    
 ```

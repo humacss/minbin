@@ -1,3 +1,12 @@
+//! High-level helpers built on top of [`BytesReader`] and [`BytesWriter`].
+//!
+//! The four entry points map to two common workflows:
+//! - [`from_bytes`] / [`bytes_into`] for decoding a complete value from a buffer
+//! - [`read_bytes`] / [`read_into`] for incremental parsing when you manage framing yourself
+//!
+//! Pair these with [`crate::to_bytes`] or [`write_bytes`] depending on whether you want the
+//! alloc convenience path or the explicit buffer-based path.
+
 use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
 /// Convenience function.
@@ -6,6 +15,7 @@ use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 ///
 /// The `init` closure constructs the initial value that gets read into.
 /// This is lazy — the closure is only called once, right before reading.
+/// Passing `Type::default` is the most common case.
 ///
 /// Fails with `TrailingBytes` if the input contains extra data after the value.
 /// This is intentional, silently ignoring trailing bytes is a common source of errors and security bugs.
@@ -30,7 +40,7 @@ where
 ///
 /// Deserializes into an existing buffer and checks for trailing bytes.
 ///
-/// Use this when you want to provide your own buffer instead of relying on `Default`.
+/// Use this when you already have a reusable buffer or want to avoid constructing a new value.
 pub fn bytes_into<'a, T: ToFromBytes<'a>>(buffer: &mut T, bytes: &'a [u8]) -> Result<(), ToFromByteError> {
     if bytes.len() > T::MAX_BYTES {
         return Err(ToFromByteError::MaxBytesExceeded);
@@ -99,7 +109,7 @@ pub fn read_into<'a, T: ToFromBytes<'a>>(buffer: &mut T, bytes: &'a [u8]) -> Res
 /// This is checked using `value.byte_count()` before touching the buffer,
 /// so you get predictable errors instead of silent truncation or panics.
 ///
-/// Preferred over `to_bytes` (the alloc version) in hot paths and no-std code.
+/// Preferred over `to_bytes` (the alloc version) in hot paths, embedded code, and other `no_std` use cases.
 #[inline]
 pub fn write_bytes<'a, T: ToFromBytes<'a>>(value: &T, buffer: &'a mut [u8]) -> Result<usize, ToFromByteError> {
     let buffer_len = buffer.len();

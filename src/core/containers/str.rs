@@ -2,8 +2,11 @@
 
 use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
-/// Placeholder
-#[derive(Debug, Clone, Copy, PartialEq)]
+/// Borrowed string wrapper for `no_std` and other allocation-free use cases.
+///
+/// This stores a `&str` as a `u32` byte length followed by UTF-8 bytes.
+/// When the default `alloc` feature is available, plain `String` is usually the simpler choice.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct StrLen32<'a>(pub &'a str);
 
 impl<'a> ToFromBytes<'a> for StrLen32<'a> {
@@ -18,10 +21,10 @@ impl<'a> ToFromBytes<'a> for StrLen32<'a> {
     }
 
     #[inline(always)]
-    fn from_bytes(buffer: & mut Self, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
+    fn from_bytes(buffer: &mut Self, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
         let mut len: u32 = 0;
         reader.read_into::<u32>(&mut len)?;
-        
+
         let bytes = reader.read_bytes(len as usize)?;
         buffer.0 = core::str::from_utf8(bytes).map_err(|_| ToFromByteError::InvalidValue)?;
 
@@ -34,12 +37,6 @@ impl<'a> ToFromBytes<'a> for StrLen32<'a> {
     }
 }
 
-impl<'a> Default for StrLen32<'a> {
-    fn default() -> Self {
-        StrLen32("")
-    }
-}
-
 impl<'a> From<&'a str> for StrLen32<'a> {
     fn from(value: &'a str) -> Self {
         StrLen32(value)
@@ -47,16 +44,15 @@ impl<'a> From<&'a str> for StrLen32<'a> {
 }
 
 #[cfg(test)]
-mod tests {    
-    use rstest::rstest;
-    use crate::{read_into, write_bytes};
+mod tests {
     use super::*;
-
+    use crate::{read_into, write_bytes};
+    use rstest::rstest;
 
     #[rstest]
     #[case::empty("")]
     #[case::something("something")]
-    fn test_str(#[case] expected: &str){
+    fn test_str(#[case] expected: &str) {
         let value: StrLen32<'_> = expected.into();
         let mut bytes = [0u8; 1000];
 
@@ -69,8 +65,5 @@ mod tests {
 
         assert_eq!(value.byte_count(), read_pos);
         assert_eq!(expected, actual.0);
-
     }
 }
-
-

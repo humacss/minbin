@@ -1,8 +1,9 @@
-use crate::{ToFromBytes, ToFromByteError, BytesWriter, BytesReader};
+use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
 /// A wrapper around a mutable slice for serialization/deserialization.
 ///
 /// Use this for `no_std` slice support where `Vec<T>` is not available.
+/// When allocation is available, `Vec<T>` is usually the simpler API.
 ///
 /// The buffer must be pre-allocated with enough capacity for the expected elements.
 /// Deserialization will fail with `NotEnoughBytes` if the wire length exceeds the buffer size.
@@ -47,23 +48,18 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Slice<'a, T> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use rstest::rstest;
-    use crate::{read_into, write_bytes};
     use super::*;
     use crate::core::containers::str::StrLen32;
-
+    use crate::{read_into, write_bytes};
+    use rstest::rstest;
 
     #[rstest]
     #[case::empty(&mut [], &mut[0u32; 0])]
     #[case::min_max(&mut[u32::MIN, u32::MAX], &mut [0u32; 2])]
     #[case::many(&mut [47, 819, 305, 92, 674, 158, 933, 21, 446, 787, 603, 139, 528, 964, 312, 85, 751, 204, 638, 376], &mut [0u32; 20])]
-    fn test_slice(
-        #[case] expected: &mut [u32],
-        #[case] default: &mut [u32]
-    ){
+    fn test_slice(#[case] expected: &mut [u32], #[case] default: &mut [u32]) {
         let value: Slice<'_, u32> = expected.into();
         let mut bytes = [0u8; 1000];
 
@@ -76,21 +72,20 @@ mod tests {
 
         assert_eq!(value.byte_count(), read_pos);
         assert_eq!(expected, actual.0);
-
     }
 
     #[test]
     fn test_str_slice_empty() {
         let mut bytes = [0u8; 1000];
         let write_pos = {
-            let mut expected = [StrLen32(""); 0];
+            let mut expected: [StrLen32<'_>; 0] = [];
             let value: Slice<'_, StrLen32<'_>> = (&mut expected[..]).into();
             let wp = write_bytes(&value, &mut bytes).unwrap();
             assert_eq!(value.byte_count(), wp);
             wp
         };
 
-        let mut actual_buf = [StrLen32(""); 0];
+        let mut actual_buf: [StrLen32<'_>; 0] = [];
         let mut actual = Slice(&mut actual_buf[..]);
         let read_pos = read_into(&mut actual, &bytes).unwrap();
 
@@ -116,5 +111,4 @@ mod tests {
         assert_eq!("hello", actual.0[0].0);
         assert_eq!("world", actual.0[1].0);
     }
-
 }

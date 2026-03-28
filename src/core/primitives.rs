@@ -20,7 +20,7 @@ impl ToFromBytes<'_> for bool {
         match byte {
             0 => *buffer = false,
             1 => *buffer = true,
-            _ => { return Err(ToFromByteError::InvalidValue) },
+            _ => return Err(ToFromByteError::InvalidValue),
         }
 
         Ok(reader.pos)

@@ -1,22 +1,20 @@
 use minbin::{from_bytes, minbin_enum, minbin_struct, to_bytes};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 enum ExampleEnum {
+    #[default]
     Invalid,
     Ping,
     Temperature(i16),
     Location(i32, i32),
-    Log { time: i64, message: String },
+    Log {
+        time: i64,
+        message: String,
+    },
 
     EmptyTuple(),
     EmptyTuple2(()),
     EmptyStruct {},
-}
-
-impl Default for ExampleEnum {
-    fn default() -> Self {
-        ExampleEnum::Invalid
-    }
 }
 
 minbin_enum! { ExampleEnum [

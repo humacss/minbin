@@ -1,11 +1,18 @@
 use minbin::{from_bytes, to_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, PartialEq)]
 struct ExampleStruct {
     uuid: u128,
     timestamp: i64,
     name: String,
     readings: Vec<String>,
+}
+
+#[allow(clippy::derivable_impls)]
+impl Default for ExampleStruct {
+    fn default() -> Self {
+        Self { uuid: 0, timestamp: 0, name: String::new(), readings: Vec::new() }
+    }
 }
 
 impl<'a> ToFromBytes<'a> for ExampleStruct {
@@ -30,10 +37,7 @@ impl<'a> ToFromBytes<'a> for ExampleStruct {
     }
 
     fn byte_count(&self) -> usize {
-        self.uuid.byte_count() +
-        self.timestamp.byte_count() +
-        self.name.byte_count() +
-        self.readings.byte_count()
+        self.uuid.byte_count() + self.timestamp.byte_count() + self.name.byte_count() + self.readings.byte_count()
     }
 }
 

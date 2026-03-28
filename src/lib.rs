@@ -3,9 +3,19 @@
 //!
 //! Designed for cases where you control both sides and value auditability over maximum speed or minimum size.
 //!
-//! You implement one small trait by hand. No derives, no macros, no hidden layout rules.
+//! You implement one small trait by hand or with the helper macros. No derives, no hidden layout rules.
 //!
 //! This gives you full ownership of the wire format while keeping the crate tiny (<500 LOC), zero-dependency, and `no-std`.
+//!
+//! # Quick Start
+//!
+//! The easiest path for a typical Rust application is:
+//! - implement [`ToFromBytes`] manually or with [`minbin_struct!`] / [`minbin_enum!`]
+//! - serialize with [`to_bytes`] (available when the default `alloc` feature is enabled)
+//! - deserialize with [`from_bytes`], passing an initializer such as `MyType::default`
+//!
+//! If you do not want allocation, use [`write_bytes`] and [`read_into`] with your own byte buffers instead.
+//! The core API is always buffer-based; the alloc API is just a convenience layer on top.
 //!
 //! The API is mainly built around borrows (`&[u8]`, `&mut [u8]`) instead of owned buffers because:
 //! - It avoids unnecessary cloning or moving data you already own.

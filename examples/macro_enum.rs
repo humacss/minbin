@@ -8,6 +8,7 @@ enum ExampleEnum {
     Log { time: i64, message: String },
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for ExampleEnum {
     fn default() -> Self {
         ExampleEnum::Ping

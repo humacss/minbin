@@ -1,11 +1,18 @@
 use minbin::{from_bytes, to_bytes};
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, PartialEq)]
 struct ExampleStruct {
     uuid: u128,
     timestamp: i64,
     name: String,
     readings: Vec<String>,
+}
+
+#[allow(clippy::derivable_impls)]
+impl Default for ExampleStruct {
+    fn default() -> Self {
+        Self { uuid: 0, timestamp: 0, name: String::new(), readings: Vec::new() }
+    }
 }
 
 minbin::minbin_struct! { ExampleStruct [

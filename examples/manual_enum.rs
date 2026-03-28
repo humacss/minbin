@@ -8,6 +8,7 @@ enum ExampleEnum {
     Log { time: i64, message: String },
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for ExampleEnum {
     fn default() -> Self {
         ExampleEnum::Ping
@@ -25,19 +26,19 @@ impl<'a> ToFromBytes<'a> for ExampleEnum {
             Self::Temperature(degrees) => {
                 writer.write::<u8>(&1)?;
 
-                writer.write::<i16>(&degrees)?;
+                writer.write::<i16>(degrees)?;
             }
             Self::Location(lat, lon) => {
                 writer.write::<u8>(&2)?;
 
-                writer.write::<i32>(&lat)?;
-                writer.write::<i32>(&lon)?;
+                writer.write::<i32>(lat)?;
+                writer.write::<i32>(lon)?;
             }
             Self::Log { time, message } => {
                 writer.write::<u8>(&3)?;
 
-                writer.write::<i64>(&time)?;
-                writer.write::<String>(&message)?;
+                writer.write::<i64>(time)?;
+                writer.write::<String>(message)?;
             }
         }
 

@@ -4,12 +4,23 @@
 /// Example:
 ///
 /// ```rust
-/// #[derive(Debug, Default, PartialEq)]
+/// #[derive(Debug, PartialEq)]
 /// struct ExampleStruct {
 ///     uuid: u128,
 ///     timestamp: i64,
 ///     name: String,
 ///     readings: Vec<String>,
+/// }
+///
+/// impl Default for ExampleStruct {
+///     fn default() -> Self {
+///         Self {
+///             uuid: 0,
+///             timestamp: 0,
+///             name: String::new(),
+///             readings: Vec::new(),
+///         }
+///     }
 /// }
 ///
 /// minbin::minbin_struct! { ExampleStruct [
@@ -21,6 +32,7 @@
 /// ```
 ///
 /// Generated code is straightforward field-by-field read/write.
+/// The field list also defines the wire order, so reordering fields is a wire-format change.
 ///
 /// For more complex structs you should write the `ToFromBytes` implementation manually.
 #[macro_export]

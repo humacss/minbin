@@ -4,8 +4,8 @@ use crate::{BytesReader, BytesWriter};
 
 /// The heart of minbin.
 ///
-/// You implement this trait by hand. No derives or macros available except your own.
-/// *(Actually we do use ONE macro for our tuple implementations, but that's it)*.
+/// You can implement this trait by hand or use the crate's helper macros for simple structs and enums.
+/// Manual implementations are still the intended escape hatch when the wire format needs to be explicit or custom.
 ///
 /// Why manual?
 /// - You own the format. No hidden field reordering, no padding surprises.
@@ -50,7 +50,7 @@ pub trait ToFromBytes<'a> {
     /// Deserializes the value from the reader, returning the deserialized value and final reader position.
     ///
     /// Returns an error on invalid data or insufficient bytes.
-    fn from_bytes<'b>(buffer: &'b mut Self,reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError>
+    fn from_bytes<'b>(buffer: &'b mut Self, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError>
     where
         Self: Sized;
 

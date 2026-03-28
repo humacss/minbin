@@ -1,4 +1,3 @@
-
 /// This is an internal macro not intended for use outside of this crate.
 ///
 /// Generates `ToFromBytes` implementations for fixed-size integers (u8–u128, i8–i128).

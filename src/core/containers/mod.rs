@@ -1,9 +1,9 @@
 //! ToFromBytes trait implementations for container types.
 
-/// Borrowed string wrapper for no_std serialization.
-pub mod str;
 /// Slice wrapper for no_std serialization.
 pub mod slice;
+/// Borrowed string wrapper for no_std serialization.
+pub mod str;
 
 use crate::{to_from_bytes_tuple, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
