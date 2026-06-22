@@ -19,12 +19,29 @@ rstest = "0.26.1"
 criterion = { version = "0.8", features = ["html_reports"] }
 
 [features]
-default = ["alloc"]
+default = ["std"]
 alloc = []
+std = ["alloc"]
 
 [[bench]]
 name = "main"
 harness = false
+
+[[example]]
+name = "macro_enum"
+required-features = ["alloc"]
+
+[[example]]
+name = "macro_struct"
+required-features = ["alloc"]
+
+[[example]]
+name = "manual_enum"
+required-features = ["alloc"]
+
+[[example]]
+name = "manual_struct"
+required-features = ["alloc"]
 
 [package.metadata.docs.rs]
 all-features = true

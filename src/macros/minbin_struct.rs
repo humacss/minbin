@@ -8,8 +8,7 @@
 /// struct ExampleStruct {
 ///     uuid: u128,
 ///     timestamp: i64,
-///     name: String,
-///     readings: Vec<String>,
+///     temperature: i16,
 /// }
 ///
 /// impl Default for ExampleStruct {
@@ -17,8 +16,7 @@
 ///         Self {
 ///             uuid: 0,
 ///             timestamp: 0,
-///             name: String::new(),
-///             readings: Vec::new(),
+///             temperature: 0,
 ///         }
 ///     }
 /// }
@@ -26,8 +24,7 @@
 /// minbin::minbin_struct! { ExampleStruct [
 ///     self.uuid: u128,
 ///     self.timestamp: i64,
-///     self.name: String,
-///     self.readings: Vec<String>
+///     self.temperature: i16
 /// ] }
 /// ```
 ///

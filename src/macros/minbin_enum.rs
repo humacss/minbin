@@ -17,14 +17,14 @@
 ///     Ping,
 ///     Temperature(i16),
 ///     Location(i32, i32),
-///     Log { time: i64, message: String },
+///     Log { time: i64, code: u16 },
 /// }
 ///
 /// minbin::minbin_enum! { ExampleEnum [
 ///     [0 => Self::Ping],
 ///     [1 => Self::Temperature(degrees: i16 = 0)],
 ///     [2 => Self::Location(lat: i32 = 0, lon: i32 = 0)],
-///     [3 => Self::Log{ time: i64 = 0, message: String = String::new() }]
+///     [3 => Self::Log{ time: i64 = 0, code: u16 = 0 }]
 /// ] }
 /// ```
 ///

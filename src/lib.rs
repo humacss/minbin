@@ -11,11 +11,11 @@
 //!
 //! The easiest path for a typical Rust application is:
 //! - implement [`ToFromBytes`] manually or with [`minbin_struct!`] / [`minbin_enum!`]
-//! - serialize with [`to_bytes`] (available when the default `alloc` feature is enabled)
+//! - serialize with [`to_bytes`] (available when the default `std` feature is enabled)
 //! - deserialize with [`from_bytes`], passing an initializer such as `MyType::default`
 //!
 //! If you do not want allocation, use [`write_bytes`] and [`read_into`] with your own byte buffers instead.
-//! The core API is always buffer-based; the alloc API is just a convenience layer on top.
+//! The core API is always buffer-based; the alloc and std APIs are convenience layers on top.
 //!
 //! The API is mainly built around borrows (`&[u8]`, `&mut [u8]`) instead of owned buffers because:
 //! - It avoids unnecessary cloning or moving data you already own.
@@ -66,6 +66,9 @@
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
 
+#[cfg(feature = "std")]
+extern crate std as rust_std;
+
 /// Re-exports everything needed for typical usage.
 pub mod core;
 pub use core::{bytes_into, from_bytes, read_bytes, read_into, write_bytes, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
@@ -78,3 +81,7 @@ pub mod macros;
 pub mod alloc;
 #[cfg(feature = "alloc")]
 pub use alloc::to_bytes;
+
+/// Implementations requiring the standard library.
+#[cfg(feature = "std")]
+pub mod std;
