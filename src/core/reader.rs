@@ -82,7 +82,9 @@ impl<'a> BytesReader<'a> {
 
     #[inline(always)]
     fn assert_enough_bytes(&self, byte_count: usize) -> Result<(), ToFromByteError> {
-        if self.pos + byte_count > self.data.len() {
+        let end = self.pos.checked_add(byte_count).ok_or(ToFromByteError::NotEnoughBytes)?;
+
+        if end > self.data.len() {
             return Err(ToFromByteError::NotEnoughBytes);
         }
 
