@@ -38,13 +38,6 @@ collections, and `to_bytes` out of the box. `std` includes `alloc`; `hash` inclu
 predictable output. See the [hash module documentation](https://docs.rs/minbin/1.0.0/minbin/hash/index.html)
 for the tradeoffs and custom encoding options.
 
-| Environment | Dependency configuration |
-|---|---|
-| Standard library | `minbin = "1.0"` |
-| Standard library without hash implementations | `minbin = { version = "1.0", default-features = false, features = ["std"] }` |
-| `no_std` with allocation | `minbin = { version = "1.0", default-features = false, features = ["alloc"] }` |
-| `no_std` without allocation | `minbin = { version = "1.0", default-features = false }` |
-
 Without allocation, use `write_bytes` / `read_into` with your own buffers and
 borrowed strings or `Slice<T>`. Rust 1.90 or newer is supported.
 
@@ -219,9 +212,7 @@ These are my results when running the benches with Criterion on an Apple M3 Pro 
 | `HashMap<u32, u32>` (25 entries) | ~183 ns | ~287 ns |
 | `HashSet<u32>` (25 elements) | ~173 ns | ~304 ns |
 
-*Deserialization of String includes UTF-8 validation.[^strings]*
-
-*Hash serialization includes sorting and temporary allocation.[^hash]*
+*Deserialization of String includes UTF-8 validation.[^strings] Hash serialization includes sorting and temporary allocation.[^hash]*
 
 [^strings]: Deserializing strings (`String`, `&str`) is often more expensive than other types due to UTF-8 validation. To avoid this cost you can use a `Vec<u8>` representing the UTF-8 bytes instead.
 
@@ -240,21 +231,7 @@ For individual results, sample layouts, and measurement details, see the
 
 ## Examples
 
-### Decoding into part of a fixed buffer
-
-Wrap a subslice to update a selected region of a larger buffer. The encoded
-element count must exactly match that region's length; otherwise decoding returns
-`SliceLengthMismatch` before updating any elements.
-
-See [the slice buffer example](examples/slice_buffer.rs) for applying incoming
-updates to different regions of a larger buffer and continuing after a length mismatch:
-
-```bash
-cargo run --example slice_buffer --no-default-features
-```
-
-Other decoding errors can leave elements partially updated; decoding does not
-roll back changes when an error occurs.
+See [the slice buffer example](examples/slice_buffer/README.md) for decoding into a region of a fixed buffer.
 
 ### Manual implementations
 
@@ -312,4 +289,4 @@ with `-- --test`; it does not use timing results as a pass/fail threshold.
 
 ## Real-World Usage
 
-Currently used in Arcanex, a tickless event-driven multiplayer game engine, where server processes and clients exchange events using `minbin`.
+Currently used in [Arcanex](https://arcanex.online/), a tickless event-driven multiplayer game engine, where server processes and clients exchange events using `minbin`.
