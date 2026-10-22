@@ -8,7 +8,7 @@ fn truncated_vector_does_not_reserve_claimed_count() {
     assert!(value.capacity() < 4096);
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature = "hash")]
 #[test]
 fn truncated_hash_map_does_not_reserve_claimed_count() {
     let mut value = std::collections::HashMap::<u32, u32>::new();
@@ -17,7 +17,7 @@ fn truncated_hash_map_does_not_reserve_claimed_count() {
     assert_eq!(value.capacity(), 0);
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature = "hash")]
 #[test]
 fn truncated_hash_set_does_not_reserve_claimed_count() {
     let mut value = std::collections::HashSet::<u32>::new();
@@ -43,7 +43,7 @@ fn nested_vectors_still_round_trip() {
     assert_eq!(minbin::from_bytes(Vec::<Vec<u32>>::new, &bytes).unwrap(), expected);
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature = "hash")]
 #[test]
 fn maximum_count_without_payload_returns_an_error() {
     let bytes = u32::MAX.to_be_bytes();

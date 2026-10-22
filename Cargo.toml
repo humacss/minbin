@@ -21,9 +21,10 @@ rstest = "0.26.1"
 criterion = { version = "0.8", features = ["html_reports"] }
 
 [features]
-default = ["std"]
+default = ["std", "hash"]
 alloc = []
 std = ["alloc"]
+hash = ["std"]
 
 [[bench]]
 name = "main"

@@ -60,3 +60,12 @@ fn empty_hash_collections_round_trip() {
     assert_eq!(from_bytes::<HashMap<u16, String>>(HashMap::new, &map_bytes).expect("deserialize empty map"), map);
     assert_eq!(from_bytes::<HashSet<u16>>(HashSet::new, &set_bytes).expect("deserialize empty set"), set);
 }
+
+#[test]
+fn hash_collection_encodings_use_ascending_order() {
+    let map = HashMap::from([(2u16, 22u8), (1, 11)]);
+    let set = HashSet::from([2u16, 1]);
+
+    assert_eq!(to_bytes(&map).unwrap(), [0, 0, 0, 2, 0, 1, 11, 0, 2, 22]);
+    assert_eq!(to_bytes(&set).unwrap(), [0, 0, 0, 2, 0, 1, 0, 2]);
+}

@@ -32,12 +32,16 @@ For most projects, start with the default standard-library path:
 - call `to_bytes(&value)` to serialize
 - call `from_bytes(Type::default, &bytes)` to deserialize
 
-The default `std` feature includes `alloc`, so strings, vectors, tree and hash
-collections, and `to_bytes` are available out of the box.
+The default `std` and `hash` features provide strings, vectors, tree and hash
+collections, and `to_bytes` out of the box. `std` includes `alloc`; `hash` includes
+`std`. Hash collection encoding allocates temporary storage and sorts entries for
+predictable output. See the [hash module documentation](https://docs.rs/minbin/1.0.0/minbin/hash/index.html)
+for the tradeoffs and custom encoding options.
 
 | Environment | Dependency configuration |
 |---|---|
 | Standard library | `minbin = "1.0"` |
+| Standard library without hash implementations | `minbin = { version = "1.0", default-features = false, features = ["std"] }` |
 | `no_std` with allocation | `minbin = { version = "1.0", default-features = false, features = ["alloc"] }` |
 | `no_std` without allocation | `minbin = { version = "1.0", default-features = false }` |
 

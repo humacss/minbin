@@ -52,3 +52,7 @@ pub use alloc::to_bytes;
 /// Implementations requiring the standard library.
 #[cfg(feature = "std")]
 pub mod std;
+
+/// Predictable hash collection encodings with explicit sorting and allocation.
+#[cfg(feature = "hash")]
+pub mod hash;

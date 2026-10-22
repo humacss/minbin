@@ -32,12 +32,14 @@ use crate::{BytesReader, BytesWriter};
 /// | Tuples | Fields in tuple order; unit `()` has no bytes |
 /// | Struct macro | Fields in the order listed in the macro |
 /// | Enum macro | Explicit `u8` discriminant followed by variant fields in macro order |
-/// | Maps | Big-endian `u32` entry count, then key/value pairs sorted by key |
-/// | Sets | Big-endian `u32` element count, then sorted elements |
+/// | `BTreeMap`, `HashMap` (with `hash`) | Big-endian `u32` entry count, then key/value pairs sorted by key |
+/// | `BTreeSet`, `HashSet` (with `hash`) | Big-endian `u32` element count, then sorted elements |
 ///
-/// Map and set decoders reject duplicate keys or elements. Hash collection encoding
-/// requires `Ord` and sorts before writing. Custom trait implementations define
-/// their own encodings.
+/// Map and set decoders reject duplicate keys or elements. The default-enabled
+/// `hash` feature provides `HashMap` and `HashSet` implementations that require
+/// `Ord` and allocate a temporary vector of references to sort before writing.
+/// Define a local wrapper for a different ordering or encoding policy.
+/// Custom trait implementations define their own encodings.
 ///
 /// For 1.x, changes to built-in wire layouts require a major release. Application
 /// schemas remain your responsibility: changing field order, types, or enum tags
