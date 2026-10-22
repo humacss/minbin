@@ -1,0 +1,49 @@
+name: CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain: ["1.90.0", stable]
+        features: ["--all-features", "--no-default-features --features alloc", "--no-default-features"]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Rust
+        run: rustup toolchain install ${{ matrix.toolchain }} --profile minimal
+      - name: Test library, integrations, documentation, and examples
+        run: cargo +${{ matrix.toolchain }} test ${{ matrix.features }}
+      - name: Build documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo +${{ matrix.toolchain }} doc --no-deps ${{ matrix.features }}
+      - name: Check all targets
+        run: cargo +${{ matrix.toolchain }} check --all-targets ${{ matrix.features }}
+
+  release-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Rust tools
+        run: rustup toolchain install stable --profile minimal --component rustfmt --component clippy --target wasm32-unknown-unknown
+      - name: Check formatting
+        run: cargo +stable fmt --check
+      - name: Check lints
+        run: cargo +stable clippy --all-targets --all-features -- -D warnings
+      - name: Check without a standard library
+        run: cargo +stable check --lib --no-default-features --target wasm32-unknown-unknown
+      - name: Build documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo +stable doc --no-deps --all-features
+      - name: Test README examples
+        run: |
+          cargo +stable build --all-features
+          rustdoc +stable --edition=2021 --test README.md --extern minbin=target/debug/libminbin.rlib
+      - name: Verify publishable package without uploading
+        run: cargo +stable publish --dry-run
