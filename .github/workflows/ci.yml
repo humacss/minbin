@@ -6,23 +6,51 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  feature-suites:
+    name: ${{ matrix.suite.name }} (Rust ${{ matrix.toolchain }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         toolchain: ["1.90.0", stable]
-        features: ["--all-features", "--no-default-features --features hash", "--no-default-features --features std", "--no-default-features --features alloc", "--no-default-features"]
+        suite:
+          - name: core
+            features: ""
+          - name: macros
+            features: ""
+          - name: alloc
+            features: "--features alloc"
+          - name: hash
+            features: "--features hash"
     steps:
       - uses: actions/checkout@v5
       - name: Install Rust
         run: rustup toolchain install ${{ matrix.toolchain }} --profile minimal
-      - name: Test library, integrations, documentation, and examples
-        run: cargo +${{ matrix.toolchain }} test ${{ matrix.features }}
+      - name: Test feature integration suite
+        run: cargo +${{ matrix.toolchain }} test --test ${{ matrix.suite.name }} --no-default-features ${{ matrix.suite.features }}
+      - name: Test library
+        run: cargo +${{ matrix.toolchain }} test --lib --no-default-features ${{ matrix.suite.features }}
+      - name: Test documentation examples
+        run: cargo +${{ matrix.toolchain }} test --doc --no-default-features ${{ matrix.suite.features }}
       - name: Build documentation (strict on Rust 1.90)
         env:
           RUSTDOCFLAGS: ${{ matrix.toolchain == '1.90.0' && '-D warnings' || '' }}
-        run: cargo +${{ matrix.toolchain }} doc --no-deps ${{ matrix.features }}
-      - name: Check all targets
+        run: cargo +${{ matrix.toolchain }} doc --no-deps --no-default-features ${{ matrix.suite.features }}
+      - name: Smoke-test feature benchmarks (no timing measurements)
+        run: cargo +${{ matrix.toolchain }} bench --bench ${{ matrix.suite.name }} --no-default-features ${{ matrix.suite.features }} -- --test
+
+  feature-combinations:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain: ["1.90.0", stable]
+        features: ["--no-default-features --features std", "--all-features"]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Rust
+        run: rustup toolchain install ${{ matrix.toolchain }} --profile minimal
+      - name: Test combined features
+        run: cargo +${{ matrix.toolchain }} test ${{ matrix.features }}
+      - name: Check all combined targets
         run: cargo +${{ matrix.toolchain }} check --all-targets ${{ matrix.features }}
 
   release-checks:

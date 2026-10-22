@@ -4,6 +4,7 @@ version = "1.0.0"
 edition = "2021"
 rust-version = "1.90"
 autobenches = false
+autotests = false
 license = "MIT"
 description = "Minimal, manual, platform-agnostic binary serialization. Predictable encoding, no-std, zero dependencies."
 repository = "https://github.com/humacss/minbin"
@@ -26,10 +27,41 @@ alloc = []
 std = ["alloc"]
 hash = ["std"]
 
+[[test]]
+name = "core"
+
+[[test]]
+name = "alloc"
+required-features = ["alloc"]
+
+[[test]]
+name = "hash"
+required-features = ["hash"]
+
+[[test]]
+name = "macros"
+
 [[bench]]
-name = "main"
+name = "core"
+path = "benches/core/main.rs"
+harness = false
+
+[[bench]]
+name = "alloc"
+path = "benches/alloc/main.rs"
 harness = false
 required-features = ["alloc"]
+
+[[bench]]
+name = "hash"
+path = "benches/hash/main.rs"
+harness = false
+required-features = ["hash"]
+
+[[bench]]
+name = "macros"
+path = "benches/macros/main.rs"
+harness = false
 
 [[example]]
 name = "macro_enum"
