@@ -37,16 +37,16 @@
 #[macro_export]
 macro_rules! minbin_enum {
     ($name:ident [ $([$($arm:tt)+]),+ $(,)?]) => {
-		impl<'a> minbin::ToFromBytes<'a> for $name {
+		impl<'a> $crate::ToFromBytes<'a> for $name {
 		    const MAX_BYTES: usize = 1_048_576;
 
-		    fn to_bytes(&self, writer: &mut minbin::BytesWriter<'a>) -> Result<(), minbin::ToFromByteError> {
+		    fn to_bytes(&self, writer: &mut $crate::BytesWriter<'a>) -> Result<(), $crate::ToFromByteError> {
 		    	$($crate::minbin_enum_helper!{@write self, writer, $($arm)+ })+;
 
 		        Err($crate::ToFromByteError::UnhandledEnumArm)
 		    }
 
-		    fn from_bytes(buffer: &mut Self, reader: &mut minbin::BytesReader<'a>) -> Result<usize, minbin::ToFromByteError> {
+		    fn from_bytes(buffer: &mut Self, reader: &mut $crate::BytesReader<'a>) -> Result<usize, $crate::ToFromByteError> {
 		    	let discriminant: u8 = reader.read(u8::default)?;
 
 		    	$($crate::minbin_enum_helper!{@read buffer, reader, discriminant, $($arm)+ })+;

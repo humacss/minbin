@@ -35,10 +35,10 @@
 #[macro_export]
 macro_rules! minbin_struct {
     ($name:ident [ $(self . $property:ident: $property_type:ty),+ $(,)?]) => {
-		impl<'a> minbin::ToFromBytes<'a> for $name {
+		impl<'a> $crate::ToFromBytes<'a> for $name {
 		    const MAX_BYTES: usize = 1_048_576;
 
-		    fn to_bytes(&self, writer: &mut minbin::BytesWriter<'a>) -> Result<(), minbin::ToFromByteError> {
+		    fn to_bytes(&self, writer: &mut $crate::BytesWriter<'a>) -> Result<(), $crate::ToFromByteError> {
 		    	$(
 	    			writer.write::<$property_type>(&self.$property)?;
     			)+
@@ -46,7 +46,7 @@ macro_rules! minbin_struct {
 		        Ok(())
 		    }
 
-		    fn from_bytes(buffer: &mut Self, reader: &mut minbin::BytesReader<'a>) -> Result<usize, minbin::ToFromByteError> {
+		    fn from_bytes(buffer: &mut Self, reader: &mut $crate::BytesReader<'a>) -> Result<usize, $crate::ToFromByteError> {
 		        $(reader.read_into(&mut buffer.$property)?;)+
 
 		        Ok(reader.pos)
