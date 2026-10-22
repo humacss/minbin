@@ -231,8 +231,6 @@ For individual results, sample layouts, and measurement details, see the
 
 ## Examples
 
-See [the slice buffer example](examples/slice_buffer/README.md) for decoding into a region of a fixed buffer.
-
 ### Manual implementations
 
 Manual implementations are not difficult, it's just a lot of unnecessary boilerplate for very simple cases.
@@ -261,6 +259,8 @@ Output the code generated from [examples/macro_struct](https://github.com/humacs
 ```bash
 cargo expand --example macro_struct    
 ```
+
+See [the slice buffer example](examples/slice_buffer/README.md) for decoding into a region of a fixed buffer.
 
 ## Tests and benchmarks
 
