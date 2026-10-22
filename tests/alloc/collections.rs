@@ -9,7 +9,7 @@ fn btree_map_round_trips() {
     value.insert(1_u16, "one".to_string());
 
     let bytes = to_bytes(&value).expect("serialize map");
-    let decoded = from_bytes::<BTreeMap<u16, String>>(BTreeMap::new, &bytes).expect("deserialize map");
+    let decoded = from_bytes::<BTreeMap<u16, String>>(&bytes).expect("deserialize map");
 
     assert_eq!(decoded, value);
 }
@@ -22,7 +22,7 @@ fn btree_set_round_trips() {
     value.insert(2_u16);
 
     let bytes = to_bytes(&value).expect("serialize set");
-    let decoded = from_bytes::<BTreeSet<u16>>(BTreeSet::new, &bytes).expect("deserialize set");
+    let decoded = from_bytes::<BTreeSet<u16>>(&bytes).expect("deserialize set");
 
     assert_eq!(decoded, value);
 }
@@ -35,8 +35,8 @@ fn empty_btree_collections_round_trip() {
     let map_bytes = to_bytes(&map).expect("serialize empty map");
     let set_bytes = to_bytes(&set).expect("serialize empty set");
 
-    assert_eq!(from_bytes::<BTreeMap<u16, String>>(BTreeMap::new, &map_bytes).expect("deserialize empty map"), map);
-    assert_eq!(from_bytes::<BTreeSet<u16>>(BTreeSet::new, &set_bytes).expect("deserialize empty set"), set);
+    assert_eq!(from_bytes::<BTreeMap<u16, String>>(&map_bytes).expect("deserialize empty map"), map);
+    assert_eq!(from_bytes::<BTreeSet<u16>>(&set_bytes).expect("deserialize empty set"), set);
 }
 
 #[test]

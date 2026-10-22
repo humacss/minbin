@@ -11,12 +11,12 @@ fn zero_byte_vector_elements_still_round_trip() {
     let expected = vec![(); 8];
     let bytes = minbin::to_bytes(&expected).unwrap();
     assert_eq!(bytes.len(), 4);
-    assert_eq!(minbin::from_bytes(Vec::<()>::new, &bytes).unwrap(), expected);
+    assert_eq!(minbin::from_bytes::<Vec<()>>(&bytes).unwrap(), expected);
 }
 
 #[test]
 fn nested_vectors_still_round_trip() {
     let expected = vec![vec![], vec![1u32, 2], vec![3]];
     let bytes = minbin::to_bytes(&expected).unwrap();
-    assert_eq!(minbin::from_bytes(Vec::<Vec<u32>>::new, &bytes).unwrap(), expected);
+    assert_eq!(minbin::from_bytes::<Vec<Vec<u32>>>(&bytes).unwrap(), expected);
 }

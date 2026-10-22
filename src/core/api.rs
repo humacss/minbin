@@ -9,8 +9,11 @@
 //!
 //! # Initialization and custom defaults
 //!
-//! `from_bytes` and `read_bytes` accept an initializer such as `MyType::default`.
-//! `bytes_into` and `read_into` instead update an existing value.
+//! `from_bytes` constructs the destination with `Default`; its type can be inferred
+//! from the result or specified with `from_bytes::<MyType>(&bytes)`.
+//! `bytes_into` and `read_into` update an existing value, including types without
+//! `Default`. Construct that value yourself when custom initialization is needed.
+//! `read_bytes` still accepts an initializer such as `MyType::default`.
 //!
 //! Vectors, maps, sets, and `Option<T>` require their decoded elements to implement
 //! `Default`. Enum macro fields also use `Default`; no placeholder expressions are
@@ -46,7 +49,7 @@
 //!
 //! // Reading Some into None constructs the wrapper with -1, then replaces
 //! // that placeholder with the incoming value, 42.
-//! let decoded = from_bytes(Option::<DecodeValue>::default, &buffer[..written]).unwrap();
+//! let decoded: Option<DecodeValue> = from_bytes(&buffer[..written]).unwrap();
 //! assert_eq!(decoded, original);
 //! assert_eq!(i32::default(), 0);
 //! ```
@@ -72,24 +75,25 @@ use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 ///
 /// Deserializes a complete value from a byte slice.
 ///
-/// The `init` closure constructs the initial value that gets read into.
-/// This is lazy — the closure is only called once, right before reading.
-/// Passing `Type::default` is the most common case.
+/// Constructs the destination with `T::default()`. The result type can be inferred
+/// from context or specified with `from_bytes::<T>(bytes)`.
+/// Use [`bytes_into`] with a preconstructed value for custom initialization or
+/// types without `Default`. Oversized input is rejected before construction.
 ///
 /// Fails with `TrailingBytes` if the input contains extra data after the value.
 /// This is intentional, silently ignoring trailing bytes is a common source of errors and security bugs.
 ///
 /// Use this when you expect exactly one message per buffer (most common case).
 #[inline]
-pub fn from_bytes<'a, T>(init: impl FnOnce() -> T, bytes: &'a [u8]) -> Result<T, ToFromByteError>
+pub fn from_bytes<'a, T>(bytes: &'a [u8]) -> Result<T, ToFromByteError>
 where
-    T: ToFromBytes<'a>,
+    T: Default + ToFromBytes<'a>,
 {
     if bytes.len() > T::MAX_BYTES {
         return Err(ToFromByteError::MaxBytesExceeded);
     }
 
-    let mut value = init();
+    let mut value = T::default();
     bytes_into(&mut value, bytes)?;
 
     Ok(value)

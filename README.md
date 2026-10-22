@@ -24,7 +24,7 @@ cargo add minbin
 For most projects, start with the default standard-library path:
 - implement [`ToFromBytes`](https://github.com/humacss/minbin/tree/main/src/core/to_from_bytes.rs) manually or with the helper macros
 - call `to_bytes(&value)` to serialize
-- call `from_bytes(Type::default, &bytes)` to deserialize
+- call `from_bytes(&bytes)` to deserialize into a type inferred from context, or use `from_bytes::<Type>(&bytes)`
 
 The default `std` and `hash` features provide strings, vectors, tree and hash
 collections, and `to_bytes` out of the box. `std` includes `alloc`; `hash` includes
@@ -78,7 +78,7 @@ mod tests {
 
         for expected in cases {
             let bytes = to_bytes(&expected).unwrap();
-            let decoded = from_bytes(ExampleEnum::default, &bytes).unwrap();
+            let decoded: ExampleEnum = from_bytes(&bytes).unwrap();
             assert_eq!(expected, decoded);
         }
     }
@@ -129,7 +129,7 @@ mod tests {
             readings: vec!["Reading1".to_string()],
         };
         let bytes = to_bytes(&expected).unwrap();
-        let actual = from_bytes(ExampleStruct::default, &bytes).unwrap();
+        let actual: ExampleStruct = from_bytes(&bytes).unwrap();
         assert_eq!(expected, actual);
     }
 }

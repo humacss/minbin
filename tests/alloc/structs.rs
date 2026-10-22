@@ -39,7 +39,7 @@ fn test_struct() {
     let expected = ExampleStruct { uuid: 0, timestamp: 1, name: "example".to_string(), readings: vec![1, 2, 3, 4] };
 
     let bytes = to_bytes(&expected).unwrap();
-    let actual: ExampleStruct = from_bytes(ExampleStruct::default, &bytes).unwrap();
+    let actual: ExampleStruct = from_bytes(&bytes).unwrap();
 
     assert_eq!(expected.uuid, actual.uuid);
     assert_eq!(expected.timestamp, actual.timestamp);

@@ -16,7 +16,7 @@
 //! The easiest path for a typical Rust application is:
 //! - implement [`ToFromBytes`] manually or with [`minbin_struct!`] / [`minbin_enum!`]
 //! - serialize with `to_bytes` (available with `alloc`, included by the default `std` feature)
-//! - deserialize with [`from_bytes`], passing an initializer such as `MyType::default`
+//! - deserialize with [`from_bytes`], inferring the result type or specifying `from_bytes::<MyType>(&bytes)`
 //!
 //! If you do not want allocation, use [`write_bytes`] and [`read_into`] with your own byte buffers instead.
 //! The core API is always buffer-based; the alloc and std APIs are convenience layers on top.

@@ -32,7 +32,7 @@ fn main() {
 
     for expected in cases {
         let bytes = to_bytes(&expected).unwrap();
-        let decoded = from_bytes(ExampleEnum::default, &bytes).unwrap();
+        let decoded: ExampleEnum = from_bytes(&bytes).unwrap();
         assert_eq!(expected, decoded);
     }
 }

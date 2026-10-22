@@ -52,6 +52,6 @@ fn reader_rejects_an_overflowing_length_without_advancing() {
 #[test]
 fn malformed_string_length_is_rejected() {
     let buffer = [255, 255, 255, 255];
-    assert_eq!(minbin::from_bytes(<&str>::default, &buffer), Err(ToFromByteError::NotEnoughBytes));
-    assert_eq!(minbin::from_bytes(minbin::core::containers::str::StrLen32::default, &buffer), Err(ToFromByteError::NotEnoughBytes));
+    assert_eq!(minbin::from_bytes::<&str>(&buffer), Err(ToFromByteError::NotEnoughBytes));
+    assert_eq!(minbin::from_bytes::<minbin::core::containers::str::StrLen32>(&buffer), Err(ToFromByteError::NotEnoughBytes));
 }

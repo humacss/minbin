@@ -21,7 +21,7 @@ fn tuple_round_trips_a_string_exactly_at_its_own_limit() {
     let mut buffer = vec![0u8; value.byte_count()];
 
     let written = write_bytes(&value, &mut buffer).unwrap();
-    let decoded = from_bytes(|| (0u8, "", 0u8), &buffer[..written]).unwrap();
+    let decoded = from_bytes::<(u8, &str, u8)>(&buffer[..written]).unwrap();
     assert_eq!(decoded, value);
 }
 

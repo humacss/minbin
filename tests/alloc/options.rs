@@ -4,7 +4,7 @@ use minbin::{bytes_into, from_bytes};
 fn vector_of_options_round_trips() {
     let expected = vec![None, Some(42u32), Some(0), None];
     let bytes = minbin::to_bytes(&expected).unwrap();
-    assert_eq!(from_bytes(Vec::<Option<u32>>::new, &bytes).unwrap(), expected);
+    assert_eq!(from_bytes::<Vec<Option<u32>>>(&bytes).unwrap(), expected);
 }
 
 #[test]
@@ -23,5 +23,5 @@ fn option_reuses_existing_string_allocation() {
 fn map_with_optional_values_round_trips() {
     let expected = std::collections::BTreeMap::from([(1u32, Some(42u32)), (2, None)]);
     let bytes = minbin::to_bytes(&expected).unwrap();
-    assert_eq!(from_bytes(std::collections::BTreeMap::<u32, Option<u32>>::new, &bytes).unwrap(), expected);
+    assert_eq!(from_bytes::<std::collections::BTreeMap<u32, Option<u32>>>(&bytes).unwrap(), expected);
 }

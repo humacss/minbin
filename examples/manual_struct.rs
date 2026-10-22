@@ -49,6 +49,6 @@ fn main() {
         readings: vec!["Reading1".to_string(), "Reading2".to_string()],
     };
     let bytes = to_bytes(&expected).unwrap();
-    let actual = from_bytes(ExampleStruct::default, &bytes).unwrap();
+    let actual: ExampleStruct = from_bytes(&bytes).unwrap();
     assert_eq!(expected, actual);
 }
