@@ -7,12 +7,6 @@
 When both sides are Rust and you just want your structs as bytes without committing to a more complex crate.
 
 `minbin` is a small, zero-dependency, safe, no-std binary serializer with platform-agnostic encoding, prioritizing predictability and auditability.
-
-You own the wire format. Built-in types use explicit encodings rather than native
-memory layouts, so the same values produce the same bytes across platforms.
-Your serialization implementation defines the fields and their order, with no
-hidden layout rules. Custom implementations give you the same control over their
-encoding.
 It is intended as a sensible default choice for new Rust projects before you know which trade-offs actually matter for your use-case.
 
 `minbin` is a dependency you can audit in minutes, instead of untangling proc macros, dependency trees, and thousands of lines of code.
