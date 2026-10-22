@@ -20,7 +20,8 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Slice<'a, T> {
     const MAX_BYTES: usize = 1_048_576; // 1 MiB
 
     fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
-        writer.write::<u32>(&(self.0.len() as u32))?;
+        let len = u32::try_from(self.0.len()).map_err(|_| ToFromByteError::InvalidValue)?;
+        writer.write(&len)?;
 
         for item in &*self.0 {
             writer.write(item)?;

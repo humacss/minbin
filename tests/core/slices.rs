@@ -65,3 +65,19 @@ fn invalid_element_encoding_is_rejected() {
     assert_eq!(result, Err(ToFromByteError::InvalidValue));
     assert_eq!(storage, [false]);
 }
+
+#[cfg(target_pointer_width = "64")]
+#[test]
+fn unrepresentable_slice_count_is_rejected_before_writing() {
+    use minbin::{BytesWriter, ToFromBytes};
+
+    // Unit elements occupy no memory, even when the count exceeds u32::MAX.
+    let mut elements = vec![(); u32::MAX as usize + 1];
+    let value = Slice(&mut elements);
+    for buffer in [&mut [0xAA; 3][..], &mut [0xAA; 4][..]] {
+        let mut writer = BytesWriter::new(buffer);
+        assert_eq!(value.to_bytes(&mut writer), Err(ToFromByteError::InvalidValue));
+        assert_eq!(writer.pos, 0);
+        assert!(buffer.iter().all(|byte| *byte == 0xAA));
+    }
+}
