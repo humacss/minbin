@@ -1,9 +1,11 @@
 [package]
 name = "minbin"
-version = "0.2.0"
+version = "1.0.0"
 edition = "2021"
+rust-version = "1.90"
+autobenches = false
 license = "MIT"
-description = "A tiny (~500 LOC), zero-dependency, safe, no-std binary serializer prioritizing predictability and auditability."
+description = "Minimal, manual, platform-agnostic binary serialization. Predictable encoding, no-std, zero dependencies."
 repository = "https://github.com/humacss/minbin"
 documentation = "https://docs.rs/minbin"
 readme = "README.md"
@@ -26,6 +28,7 @@ std = ["alloc"]
 [[bench]]
 name = "main"
 harness = false
+required-features = ["alloc"]
 
 [[example]]
 name = "macro_enum"
