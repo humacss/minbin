@@ -26,9 +26,14 @@
 //!
 //! # Size limits
 //!
-//! By default, all container types (`Option<T>`, `Vec<T>`, etc.) are limited to
-//! **1 MiB** (1,048,576 bytes) of total serialized data.
-//! This is a safeguard against memory exhaustion in constrained environments.
+//! Collections such as `Vec<T>` and tuples are limited to **1 MiB**
+//! (1,048,576 bytes) of total serialized data. `Option<T>` allows one tag byte
+//! plus the inner type's limit.
+//!
+//! These limits include length prefixes and nested data. They apply to serialized
+//! bytes, not total memory allocated during initialization or decoding.
+//! Serialization helpers rely on an accurate [`ToFromBytes::byte_count`]
+//! implementation when checking [`ToFromBytes::MAX_BYTES`].
 //!
 //! Strings (`String` and `&str`) are capped at **100 KiB** (102,400 bytes) instead.
 //! This is because deserializing a `String` requires a full UTF-8 validation pass,

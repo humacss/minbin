@@ -17,29 +17,22 @@ use crate::{BytesReader, BytesWriter};
 /// - `to_bytes`:   Writes into an existing buffer. No intermediate allocations.
 /// - `from_bytes`: Returns the final cursor position. You can parse multiple messages from one buffer.
 pub trait ToFromBytes<'a> {
-    /// Hard upper bound on the serialized size of this type (including length prefixes
-    /// and all nested data).
+    /// Maximum serialized size of this type, including length prefixes and nested data.
     ///
-    /// Default for `String`, `&str`, `Vec<T>` and tuples: **1 MiB** (`1_048_576` bytes).
-    /// This prevents accidental or intentional denial of service attacks.
+    /// `Vec<T>` and tuples use **1 MiB** (`1_048_576` bytes).
+    /// `String` and `&str` use **100 KiB** (`102_400` bytes).
     ///
-    /// # Important Safety Note
-    /// The library **centrally enforces** `MAX_BYTES` in `write_bytes` and `read_bytes`.
-    /// Even if a user's `byte_count()` lies, the limit is still respected.
+    /// Serialization helpers check this limit using `byte_count()`. Implementers
+    /// must report the exact number of bytes that `to_bytes` will write; an
+    /// incorrect count can invalidate these checks.
     ///
-    /// # When can `usize` overflow happen?
-    /// Only if you manually set `MAX_BYTES` close to or equal to `usize::MAX`
-    /// **and** your type adds extra overhead (e.g. a length prefix) that pushes
-    /// the final size over the edge.
+    /// Complete-message decoding helpers reject input longer than this limit.
+    /// Reader methods check the number of bytes consumed after decoding a value.
+    /// The limit applies to serialized bytes, not total memory allocated by
+    /// initialization or decoding implementations.
     ///
-    /// Examples:
-    /// - A `String` with `MAX_BYTES = usize::MAX`. `byte_count()` can return
-    ///   `4 + usize::MAX` leading to overflow.
-    /// - A deeply nested `Vec<Vec<...>>` with `MAX_BYTES = usize::MAX`, same problem but nested.
-    ///
-    /// The default 1 MiB limit is safe on all systems 32-bit and above, since it is enforced on
-    /// the top level. If you raise `MAX_BYTES` significantly, just keep the total serialized size
-    /// comfortably below `usize::MAX` and you’ll be fine.
+    /// Implementers must ensure size calculations, including prefixes and nested
+    /// values, fit in `usize` without overflow.
     const MAX_BYTES: usize;
 
     /// Serializes the value into the provided writer.
@@ -56,6 +49,8 @@ pub trait ToFromBytes<'a> {
 
     /// Returns the exact number of bytes this value will occupy when serialized.
     ///
-    /// The total byte_count including recursive types and length prefixes may not exceed usize.
+    /// Must match the number of bytes written by `to_bytes`, including all length
+    /// prefixes and nested values. Serialization helpers rely on this count for
+    /// buffer sizing and `MAX_BYTES` checks. The calculation must not overflow `usize`.
     fn byte_count(&self) -> usize;
 }

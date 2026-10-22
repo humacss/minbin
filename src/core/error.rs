@@ -15,7 +15,7 @@ pub enum ToFromByteError {
     TrailingBytes,
     /// The value is too large, exceeding the `MAX_BYTES` setting on `ToFromBytes`.
     ///
-    /// This is a security setting intended to prevent denial of service attacks.
+    /// The limit applies to serialized bytes, including prefixes and nested data.
     MaxBytesExceeded,
     /// The deserialized value is invalid for the type (e.g., invalid bool, invalid UTF-8).
     InvalidValue,
