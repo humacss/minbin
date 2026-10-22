@@ -70,6 +70,16 @@ impl<'a> BytesReader<'a> {
         Ok(slice)
     }
 
+    // The u32 prefix counts elements, not bytes, and has already been read.
+    // Only reserve speculatively when the count fits the remaining input and
+    // serialized-byte limit.
+    #[cfg(feature = "alloc")]
+    #[inline]
+    pub(crate) fn can_reserve_elements(&self, count: u32, max_bytes: usize) -> bool {
+        let reservation_budget = (max_bytes - 4).min(self.data.len() - self.pos);
+        count as usize <= reservation_budget
+    }
+
     #[inline(always)]
     fn assert_enough_bytes(&self, byte_count: usize) -> Result<(), ToFromByteError> {
         if self.pos + byte_count > self.data.len() {

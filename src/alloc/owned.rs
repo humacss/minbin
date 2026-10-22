@@ -45,7 +45,9 @@ where
         let mut len: u32 = 0;
         reader.read_into(&mut len)?;
 
-        buffer.reserve(len as usize);
+        if reader.can_reserve_elements(len, Self::MAX_BYTES) {
+            buffer.reserve(len as usize);
+        }
 
         for _ in 0..len {
             buffer.push(T::default());
