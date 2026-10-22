@@ -211,7 +211,7 @@ These are my results when running the benches with Criterion on an Apple M3 Pro 
 | 100B Vec<u32>                                    | ~24 ns    | ~38 ns      |
 | 100B `String`     (1 byte chars)                 | ~13 ns    | ~30 ns      |
 | 100B `String`     (4 byte chars)                 | ~17 ns    | ~77 ns      |
-| 200B struct       (includes 100B, 4 char string) | ~37 ns    | ~115 ns     |
+| 200B struct (includes 100B string, 4-byte chars) | ~37 ns    | ~115 ns     |
 
 *Deserialization of String includes UTF-8 validation.[^strings]*
 
