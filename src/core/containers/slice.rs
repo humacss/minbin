@@ -5,8 +5,9 @@ use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 /// Use this for `no_std` slice support where `Vec<T>` is not available.
 /// When allocation is available, `Vec<T>` is usually the simpler API.
 ///
-/// The buffer must be pre-allocated with enough capacity for the expected elements.
-/// Deserialization will fail with `NotEnoughBytes` if the wire length exceeds the buffer size.
+/// The encoded element count must exactly match the destination slice length.
+/// A mismatch returns `SliceLengthMismatch` before any elements are updated.
+/// To decode into part of a larger buffer, wrap the desired subslice.
 pub struct Slice<'a, T>(pub &'a mut [T]);
 
 impl<'a, T> From<&'a mut [T]> for Slice<'a, T> {
@@ -32,8 +33,8 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Slice<'a, T> {
         let mut len: u32 = 0;
         reader.read_into::<u32>(&mut len)?;
 
-        if len as usize > buffer.0.len() {
-            return Err(ToFromByteError::NotEnoughBytes);
+        if len as usize != buffer.0.len() {
+            return Err(ToFromByteError::SliceLengthMismatch);
         }
 
         for i in 0..len as usize {

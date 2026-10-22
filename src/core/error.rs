@@ -7,6 +7,8 @@ use core::fmt;
 pub enum ToFromByteError {
     /// The buffer or data slice does not have enough bytes for the operation.
     NotEnoughBytes,
+    /// The encoded element count does not match the destination slice length.
+    SliceLengthMismatch,
     /// The value was read successfully, but the buffer contained extra bytes afterward.
     ///
     /// These bytes would be silently dropped if we returned Ok().
@@ -24,6 +26,7 @@ pub enum ToFromByteError {
 impl fmt::Display for ToFromByteError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ToFromByteError::SliceLengthMismatch => formatter.write_str("slice length mismatch"),
             ToFromByteError::NotEnoughBytes => formatter.write_str("not enough bytes"),
             ToFromByteError::TrailingBytes => formatter.write_str("trailing bytes"),
             ToFromByteError::MaxBytesExceeded => formatter.write_str("max bytes exceeded"),
