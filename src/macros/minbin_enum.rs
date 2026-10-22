@@ -1,10 +1,9 @@
 /// Declarative macro that generates a `ToFromBytes` implementation for an enum
 /// using a simple discriminant + payload layout.
 ///
-/// Each variant field requires an initial value expression (after `=`) that is used
-/// as a temporary buffer during deserialization. The value is always overwritten by
-/// the deserialized data, so the exact value does not matter — it only needs to be
-/// a valid instance of the type.
+/// Each variant field must implement `Default`. Its default value is used as
+/// a temporary buffer, then populated with the deserialized data.
+/// Custom initialization can be implemented manually with `ToFromBytes`.
 ///
 /// This macro is best for small, stable enums with an obvious `u8` discriminant mapping.
 /// If you need a different layout, custom validation, or more control over forward compatibility,
@@ -22,9 +21,9 @@
 ///
 /// minbin::minbin_enum! { ExampleEnum [
 ///     [0 => Self::Ping],
-///     [1 => Self::Temperature(degrees: i16 = 0)],
-///     [2 => Self::Location(lat: i32 = 0, lon: i32 = 0)],
-///     [3 => Self::Log{ time: i64 = 0, code: u16 = 0 }]
+///     [1 => Self::Temperature(degrees: i16)],
+///     [2 => Self::Location(lat: i32, lon: i32)],
+///     [3 => Self::Log{ time: i64, code: u16 }]
 /// ] }
 /// ```
 ///
@@ -98,7 +97,7 @@ macro_rules! minbin_enum_helper {
 	};
 
 	// --- @write: Tuple variant ---
-	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty = $default:expr),*)) => {
+	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty),*)) => {
 		if let Self::$arm_name($($item_name),*) = $self {
 			$writer.write::<u8>(&$discriminant)?;
 
@@ -109,7 +108,7 @@ macro_rules! minbin_enum_helper {
 	};
 
 	// --- @write: Struct variant ---
-	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty = $default:expr),*}) => {
+	(@write $self:expr, $writer:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty),*}) => {
 		if let Self::$arm_name{$($item_name),*} = $self {
 			$writer.write::<u8>(&$discriminant)?;
 
@@ -128,11 +127,11 @@ macro_rules! minbin_enum_helper {
 	};
 
 	// --- @read: Tuple variant ---
-	// The default expression is used as a temporary buffer for deserialization.
+	// Default constructs the temporary buffer for deserialization.
 	// It is always overwritten by the deserialized data.
-	(@read $buffer:expr, $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty = $default:expr),*)) => {
+	(@read $buffer:expr, $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item_type:ty),*)) => {
 		if $discriminant == $value {
-			$(let $item_name: $item_type = $reader.read(|| $default)?;)*
+			$(let $item_name: $item_type = $reader.read(<$item_type as ::core::default::Default>::default)?;)*
 
 			*$buffer = Self::$arm_name($($item_name),*);
 			return Ok($reader.pos);
@@ -140,11 +139,11 @@ macro_rules! minbin_enum_helper {
 	};
 
 	// --- @read: Struct variant ---
-	// The default expression is used as a temporary buffer for deserialization.
+	// Default constructs the temporary buffer for deserialization.
 	// It is always overwritten by the deserialized data.
-	(@read $buffer:expr, $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty = $default:expr),*}) => {
+	(@read $buffer:expr, $reader:expr, $value:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item_type:ty),*}) => {
 		if $discriminant == $value {
-			$(let $item_name: $item_type = $reader.read(|| $default)?;)*
+			$(let $item_name: $item_type = $reader.read(<$item_type as ::core::default::Default>::default)?;)*
 
 			*$buffer = Self::$arm_name{$($item_name),*};
 			return Ok($reader.pos);
@@ -159,14 +158,14 @@ macro_rules! minbin_enum_helper {
 	};
 
 	// --- @byte_count: Tuple variant ---
-	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item:ty = $default:expr),*)) => {
+	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident($($item_name:ident: $item:ty),*)) => {
 		if let Self::$arm_name($($item_name),*) = $self {
 			$($count += $item_name.byte_count();)*
 		}
 	};
 
 	// --- @byte_count: Struct variant ---
-	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item:ty = $default:expr),*}) => {
+	(@byte_count $self:expr, $count:expr, $discriminant:literal => Self::$arm_name:ident{$($item_name:ident: $item:ty),*}) => {
 		if let Self::$arm_name{$($item_name),*} = $self {
 			$($count += $item_name.byte_count();)*
 		}

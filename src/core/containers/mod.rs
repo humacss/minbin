@@ -7,7 +7,7 @@ pub mod str;
 
 use crate::{to_from_bytes_tuple, BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 
-impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
+impl<'a, T: ToFromBytes<'a> + Default> ToFromBytes<'a> for Option<T> {
     const MAX_BYTES: usize = 1 + T::MAX_BYTES;
 
     #[inline(always)]
@@ -29,14 +29,9 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
 
     /// Deserializes an `Option<T>` from the reader.
     ///
-    /// When the wire data contains `Some`, the buffer must already be `Some(value)` so that
-    /// the existing value can be read into. If the buffer is `None` but the wire has `Some`,
-    /// this returns `InvalidValue`.
-    ///
-    /// Use the convenience functions with an init closure to handle this automatically:
-    /// ```ignore
-    /// let opt: Option<MyType> = from_bytes(|| Some(MyType::new(..)), &bytes)?;
-    /// ```
+    /// When the wire data contains `Some`, an existing inner value is reused.
+    /// If the buffer is `None`, `T::default()` constructs the value to read into.
+    /// A wire tag of `None` clears the buffer without constructing an inner value.
     #[inline(always)]
     fn from_bytes(buffer: &mut Option<T>, reader: &mut BytesReader<'a>) -> Result<usize, ToFromByteError> {
         let mut tag: u8 = 0;
@@ -45,10 +40,7 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Option<T> {
         match tag {
             0 => *buffer = None,
             1 => {
-                match buffer.as_mut() {
-                    Some(inner) => reader.read_into(inner)?,
-                    None => return Err(ToFromByteError::InvalidValue),
-                };
+                reader.read_into(buffer.get_or_insert_with(T::default))?;
             }
             _ => return Err(ToFromByteError::InvalidValue),
         }

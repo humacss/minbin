@@ -17,9 +17,9 @@ impl Default for ExampleEnum {
 
 minbin::minbin_enum! { ExampleEnum [
     [0 => Self::Ping],
-    [1 => Self::Temperature(degrees: i16 = 0)],
-    [2 => Self::Location(lat: i32 = 0, lon: i32 = 0)],
-    [3 => Self::Log{ time: i64 = 0, message: String = String::new() }]
+    [1 => Self::Temperature(degrees: i16)],
+    [2 => Self::Location(lat: i32, lon: i32)],
+    [3 => Self::Log{ time: i64, message: String }]
 ] }
 
 fn main() {
