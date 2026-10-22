@@ -61,7 +61,7 @@
 //! bytes. [`read_bytes`] and [`read_into`] return the consumed byte count so the
 //! caller can parse multiple values from a buffer.
 //!
-//! [`Slice`](crate::core::containers::slice::Slice) requires an exact destination
+//! [The `Slice` wrapper](crate::core::containers::slice::Slice) requires an exact destination
 //! element count. Wrap a subslice to update a region of a larger buffer. A count
 //! mismatch is rejected before updating elements. Other decoding errors can leave
 //! values partially updated; callers must handle the error before using them.

@@ -1,6 +1,6 @@
 //! Borrowed UTF-8 strings for allocation-free decoding.
 //!
-//! [`StrLen32`](crate::core::containers::str::StrLen32) and the built-in `&str` implementation borrow their contents from
+//! [The `StrLen32` wrapper](crate::core::containers::str::StrLen32) and the built-in `&str` implementation borrow their contents from
 //! the input buffer. Keep that buffer alive for as long as the decoded string is
 //! used. The borrow checker enforces this lifetime relationship.
 //!
@@ -11,7 +11,7 @@
 //! Both encodings use a `u32` UTF-8 byte length followed by the string bytes.
 //! UTF-8 is validated during decoding. The 100 KiB serialized-size limit includes
 //! the four-byte prefix. For a different limit or validation policy, define a
-//! wrapper with its own [`ToFromBytes`](crate::ToFromBytes) implementation.
+//! wrapper with its own [serialization trait](crate::ToFromBytes) implementation.
 
 #![deny(elided_lifetimes_in_paths)]
 
