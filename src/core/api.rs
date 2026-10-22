@@ -4,8 +4,67 @@
 //! - [`from_bytes`] / [`bytes_into`] for decoding a complete value from a buffer
 //! - [`read_bytes`] / [`read_into`] for incremental parsing when you manage framing yourself
 //!
-//! Pair these with [`crate::to_bytes`] or [`write_bytes`] depending on whether you want the
+//! Pair these with `crate::to_bytes` or [`write_bytes`] depending on whether you want the
 //! alloc convenience path or the explicit buffer-based path.
+//!
+//! # Initialization and custom defaults
+//!
+//! `from_bytes` and `read_bytes` accept an initializer such as `MyType::default`.
+//! `bytes_into` and `read_into` instead update an existing value.
+//!
+//! Vectors, maps, sets, and `Option<T>` require their decoded elements to implement
+//! `Default`. Enum macro fields also use `Default`; no placeholder expressions are
+//! needed. When decoding `Some`, an existing inner value is reused, or `T::default()`
+//! constructs one if the destination is `None`.
+//!
+//! If your application's `Default` is unsuitable for decoding, define a wrapper
+//! with its own `Default` and a delegating `ToFromBytes` implementation. For example,
+//! `Option<DecodeValue>` can use a different initializer from `Option<MyValue>`.
+//! Manual implementations can also call `reader.read(|| custom_initializer())`.
+//!
+//! For example, `i32::default()` is `0`, but a decoding wrapper can use `-1`:
+//!
+//! ```rust
+//! use minbin::{from_bytes, write_bytes};
+//!
+//! #[derive(Debug, PartialEq)]
+//! struct DecodeValue {
+//!     value: i32,
+//! }
+//!
+//! impl Default for DecodeValue {
+//!     fn default() -> Self {
+//!         Self { value: -1 }
+//!     }
+//! }
+//!
+//! minbin::minbin_struct! { DecodeValue [self.value: i32] }
+//!
+//! let original = Some(DecodeValue { value: 42 });
+//! let mut buffer = [0u8; 5]; // Option tag and i32 value
+//! let written = write_bytes(&original, &mut buffer).unwrap();
+//!
+//! // Reading Some into None constructs the wrapper with -1, then replaces
+//! // that placeholder with the incoming value, 42.
+//! let decoded = from_bytes(Option::<DecodeValue>::default, &buffer[..written]).unwrap();
+//! assert_eq!(decoded, original);
+//! assert_eq!(i32::default(), 0);
+//! ```
+//!
+//! Defaults provide initial storage; each type's decoder determines how it is
+//! updated. Decoding is not transactional: errors can leave values partially updated.
+//!
+//!
+//! # Framing and errors
+//!
+//! [`from_bytes`] and [`bytes_into`] expect exactly one value and reject trailing
+//! bytes. [`read_bytes`] and [`read_into`] return the consumed byte count so the
+//! caller can parse multiple values from a buffer.
+//!
+//! [`Slice`](crate::core::containers::slice::Slice) requires an exact destination
+//! element count. Wrap a subslice to update a region of a larger buffer. A count
+//! mismatch is rejected before updating elements. Other decoding errors can leave
+//! values partially updated; callers must handle the error before using them.
 
 use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 

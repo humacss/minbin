@@ -6,7 +6,13 @@
 # minbin
 When both sides are Rust and you just want your structs as bytes without committing to a more complex crate.
 
-`minbin` is a tiny (~500 LOC), zero-dependency, safe, no-std binary serializer prioritizing predictability and auditability.
+`minbin` is a small, zero-dependency, safe, no-std binary serializer with platform-agnostic encoding, prioritizing predictability and auditability.
+
+You own the wire format. Built-in types use explicit encodings rather than native
+memory layouts, so the same values produce the same bytes across platforms.
+Your serialization implementation defines the fields and their order, with no
+hidden layout rules. Custom implementations give you the same control over their
+encoding.
 It is intended as a sensible default choice for new Rust projects before you know which trade-offs actually matter for your use-case.
 
 `minbin` is a dependency you can audit in minutes, instead of untangling proc macros, dependency trees, and thousands of lines of code.
@@ -18,16 +24,25 @@ Specialized crates are excellent when you have a concrete serialization bottlene
 ## Usage
 
 Install the crate:
-```
+```sh
 cargo add minbin
 ```
-For most projects, start with the default alloc-enabled path:
+For most projects, start with the default standard-library path:
 - implement [`ToFromBytes`](https://github.com/humacss/minbin/tree/main/src/core/to_from_bytes.rs) manually or with the helper macros
 - call `to_bytes(&value)` to serialize
 - call `from_bytes(Type::default, &bytes)` to deserialize
 
-The `alloc` feature is enabled by default, so `String`, `Vec<T>`, and `to_bytes` are available out of the box.
-If you are in `no_std` or want to avoid allocation, use `write_bytes` / `read_into` with your own buffers instead.
+The default `std` feature includes `alloc`, so strings, vectors, tree and hash
+collections, and `to_bytes` are available out of the box.
+
+| Environment | Dependency configuration |
+|---|---|
+| Standard library | `minbin = "1.0"` |
+| `no_std` with allocation | `minbin = { version = "1.0", default-features = false, features = ["alloc"] }` |
+| `no_std` without allocation | `minbin = { version = "1.0", default-features = false }` |
+
+Without allocation, use `write_bytes` / `read_into` with your own buffers and
+borrowed strings or `Slice<T>`. Rust 1.90 or newer is supported.
 
 For simple structs and enums, the macros are the easiest place to start.
 For anything non-trivial, manual implementations are straightforward and give you full control over the wire format.
@@ -136,6 +151,9 @@ You can also implement the trait [manually](#manual-implementations) for complex
 - If you want the shortest path to working code, start with `minbin_struct!` / `minbin_enum!`
 - If you need custom validation or more control over the wire format, implement `ToFromBytes` manually
 - If you do not want allocation, use `write_bytes` and `read_into` instead of `to_bytes`
+
+See the Rust documentation for [initialization and custom defaults](https://docs.rs/minbin/1.0.0/minbin/core/api/index.html#initialization-and-custom-defaults)
+and [wire format and compatibility](https://docs.rs/minbin/1.0.0/minbin/trait.ToFromBytes.html#wire-format-and-compatibility).
 
 ## Why yet another serializer?
 Many Rust projects need to turn a struct into bytes and back at some point.
@@ -253,8 +271,7 @@ cargo expand --example macro_struct
 ```
 
 ## Future work
-- optional little-endian feature (currently only big-endian is supported)
-- &[T] support (for primitive types without `unsafe`)
+- direct `&[T]` support beyond the existing mutable `Slice<T>` wrapper
 - more examples showcasing common use-cases (versioning, server)
 
 ## Real-World Usage

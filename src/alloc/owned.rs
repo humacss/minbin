@@ -18,7 +18,7 @@ use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 /// module instead — it works with a pre-allocated buffer and has no trait requirements
 /// beyond `ToFromBytes`.
 ///
-/// We plan to explore removing the `Default` requirement in a future version.
+/// Use a wrapper type with its own `Default` implementation for custom initialization.
 impl<'a, T> ToFromBytes<'a> for Vec<T>
 where
     T: ToFromBytes<'a> + Default,

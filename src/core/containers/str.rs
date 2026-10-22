@@ -1,3 +1,18 @@
+//! Borrowed UTF-8 strings for allocation-free decoding.
+//!
+//! [`StrLen32`](crate::core::containers::str::StrLen32) and the built-in `&str` implementation borrow their contents from
+//! the input buffer. Keep that buffer alive for as long as the decoded string is
+//! used. The borrow checker enforces this lifetime relationship.
+//!
+//! If a string must outlive the rest of a message, copy its contents into a
+//! separate buffer and borrow from that buffer, or use an owned `String` when
+//! the `alloc` feature is available. Owned strings do not borrow the input.
+//!
+//! Both encodings use a `u32` UTF-8 byte length followed by the string bytes.
+//! UTF-8 is validated during decoding. The 100 KiB serialized-size limit includes
+//! the four-byte prefix. For a different limit or validation policy, define a
+//! wrapper with its own [`ToFromBytes`](crate::ToFromBytes) implementation.
+
 #![deny(elided_lifetimes_in_paths)]
 
 use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
@@ -5,7 +20,7 @@ use crate::{BytesReader, BytesWriter, ToFromByteError, ToFromBytes};
 /// Borrowed string wrapper for `no_std` and other allocation-free use cases.
 ///
 /// This stores a `&str` as a `u32` byte length followed by UTF-8 bytes.
-/// When the default `alloc` feature is available, plain `String` is usually the simpler choice.
+/// When the `alloc` feature is available, plain `String` is usually the simpler choice.
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct StrLen32<'a>(pub &'a str);
 
