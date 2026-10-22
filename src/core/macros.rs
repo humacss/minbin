@@ -56,7 +56,7 @@ macro_rules! to_from_bytes_tuple {
             #[allow(unused_variables)]
             fn to_bytes(&self, writer: &mut BytesWriter<'a>) -> Result<(), ToFromByteError> {
                 let ($($name,)*) = self;
-                $($name.to_bytes(writer)?;)*
+                $(writer.write($name)?;)*
                 Ok(())
             }
 

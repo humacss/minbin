@@ -23,7 +23,7 @@ impl<'a, T: ToFromBytes<'a>> ToFromBytes<'a> for Slice<'a, T> {
         writer.write::<u32>(&(self.0.len() as u32))?;
 
         for item in &*self.0 {
-            item.to_bytes(writer)?;
+            writer.write(item)?;
         }
 
         Ok(())
