@@ -206,26 +206,37 @@ If you can write Rust, you can use and debug `minbin`.
 
 `minbin` deliberately gives up all of the above to stay simple, auditable and predictable.
 
-### Performance in practice 
+### Performance in practice
 These are my results when running the benches with Criterion on an Apple M3 Pro using Rust 1.90.0.
 
-| Type                                             | Serialize | Deserialize |
-|--------------------------------------------------|-----------|-------------|
-| `u8-128`, `i8-i128`, `bool`                      | ~8 ns     | ~8 ns       |
-| 100B Vec<u32>                                    | ~24 ns    | ~38 ns      |
-| 100B `String`     (1 byte chars)                 | ~13 ns    | ~30 ns      |
-| 100B `String`     (4 byte chars)                 | ~17 ns    | ~77 ns      |
-| 200B struct (includes 100B string, 4-byte chars) | ~37 ns    | ~115 ns     |
+| Type | Serialize | Deserialize |
+|---|---:|---:|
+| `u8`–`u128`, `i8`–`i128`, `bool` | ~9–10 ns | ~9–10 ns |
+| 104B `Vec<u32>` (25 elements) | ~21 ns | ~65 ns |
+| 72B `String` (ASCII) | ~13 ns | ~49 ns |
+| 118B `String` (emoji) | ~15 ns | ~104 ns |
+| 226B struct (includes 118B emoji string) | ~31 ns | ~157 ns |
+| `HashMap<u32, u32>` (25 entries) | ~183 ns | ~287 ns |
+| `HashSet<u32>` (25 elements) | ~173 ns | ~304 ns |
 
 *Deserialization of String includes UTF-8 validation.[^strings]*
 
-[^strings]: Deserializing strings(`String`, `&str`) is often more expensive than other types due to UTF-8 validation. This cannot be avoided without using `unsafe`. To avoid this cost you can use a `Vec<u8>` representing the UTF-8 bytes instead.
+*Hash serialization includes sorting and temporary allocation.[^hash]*
+
+[^strings]: Deserializing strings (`String`, `&str`) is often more expensive than other types due to UTF-8 validation. To avoid this cost you can use a `Vec<u8>` representing the UTF-8 bytes instead.
+
+[^hash]: Hash maps and sets do not iterate in a predictable order. Minbin collects references into a temporary vector, sorts them by key or element, then writes them to the output buffer in that order. The keys and values are not cloned. Tree collections already iterate in sorted order and do not need this step.
 
 Real-world takeaway:
-- Serializing a 200 byte game packet: **~27 million times / second**
-- Deserializing the same packet: **~8.7 million times / second**
+
+- Serializing a 226 byte game packet: **~32 million times / second**
+- Deserializing the same packet: **~6.4 million times / second**
 
 That's on one core. This is usually fast enough that it won't be your bottleneck.
+
+For individual results, sample layouts, and measurement details, see the
+[core](benches/core/README.md), [alloc](benches/alloc/README.md),
+[hash](benches/hash/README.md), and [macro](benches/macros/README.md) benchmark notes.
 
 ## Examples
 
@@ -273,6 +284,27 @@ Output the code generated from [examples/macro_struct](https://github.com/humacs
 ```bash
 cargo expand --example macro_struct    
 ```
+
+## Tests and benchmarks
+
+Integration tests and benchmarks have separate `core`, `alloc`, `hash`, and
+`macros` targets. Run each with only its required Minbin features:
+
+| Target | Integration tests | Benchmarks |
+|---|---|---|
+| Core | `cargo test --test core --no-default-features` | `cargo bench --bench core --no-default-features` |
+| Macros | `cargo test --test macros --no-default-features` | `cargo bench --bench macros --no-default-features` |
+| Alloc | `cargo test --test alloc --no-default-features --features alloc` | `cargo bench --bench alloc --no-default-features --features alloc` |
+| Hash | `cargo test --test hash --no-default-features --features hash` | `cargo bench --bench hash --no-default-features --features hash` |
+
+Allocation-dependent macro tests live in the alloc suite. The std feature adds
+alloc support without additional implementations, so CI checks it as a feature
+combination. `cargo test --all-features` runs all integration suites, library
+unit tests, and documentation examples together.
+
+The test and Criterion harnesses use the standard library, including when Minbin
+is built without its `std` or `alloc` features. CI smoke-tests benchmark targets
+with `-- --test`; it does not use timing results as a pass/fail threshold.
 
 ## Future work
 - direct `&[T]` support beyond the existing mutable `Slice<T>` wrapper
